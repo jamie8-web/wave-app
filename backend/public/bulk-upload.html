@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bulk Upload - Wave</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #121212;
+            color: white;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #181818;
+            padding: 24px;
+            border-radius: 16px;
+        }
+
+        h1 {
+            color: #1DB954;
+            margin-bottom: 8px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #b3b3b3;
+            margin-bottom: 24px;
+            font-size: 14px;
+        }
+
+        /* Mode Selector */
+        .mode-selector {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 24px;
+            background: #282828;
+            padding: 8px;
+            border-radius: 48px;
+        }
+
+        .mode-btn {
+            flex: 1;
+            background: transparent;
+            border: none;
+            padding: 12px;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            color: #b3b3b3;
+            transition: all 0.2s;
+        }
+
+        .mode-btn.active {
+            background: #1DB954;
+            color: black;
+        }
+
+        /* Artist Selector Panel */
+        .artist-selector {
+            background: #282828;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 24px;
+            border-left: 4px solid #1DB954;
+        }
+
+        .artist-selector label {
+            font-weight: 600;
+            font-size: 14px;
+            color: #1DB954;
+        }
+
+        /* Search Container */
+        .search-container {
+            position: relative;
+            margin-top: 12px;
+        }
+
+        #artistSearchInput {
+            width: 100%;
+            background: #3a3a3a;
+            border: 1px solid #4a4a4a;
+            border-radius: 8px;
+            padding: 12px 16px;
+            color: white;
+            font-size: 14px;
+            outline: none;
+        }
+
+        #artistSearchInput:focus {
+            border-color: #1DB954;
+        }
+
+        #artistDropdownResults {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: #3a3a3a;
+            border-radius: 8px;
+            margin-top: 4px;
+            max-height: 250px;
+            overflow-y: auto;
+            z-index: 100;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        .dropdown-item {
+            padding: 12px 16px;
+            cursor: pointer;
+            border-bottom: 1px solid #4a4a4a;
+        }
+
+        .dropdown-item:hover {
+            background: #4a4a4a;
+        }
+
+        .create-item {
+            color: #1DB954;
+        }
+
+        .selected-artist-badge {
+            margin-top: 12px;
+        }
+
+        .artist-badge {
+            background: #1DB954;
+            color: black;
+            padding: 6px 12px 6px 16px;
+            border-radius: 32px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .clear-artist {
+            background: none;
+            border: none;
+            color: black;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            padding: 0 4px;
+        }
+
+        .clear-artist:hover {
+            opacity: 0.7;
+        }
+
+        .info-text {
+            font-size: 12px;
+            color: #888;
+            margin-top: 12px;
+        }
+
+        /* Upload Area */
+        .upload-area {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        #fileInput {
+            flex: 1;
+            background: #282828;
+            border: 1px solid #4a4a4a;
+            border-radius: 8px;
+            padding: 10px;
+            color: white;
+            cursor: pointer;
+        }
+
+        /* Buttons */
+        button {
+            background: #1DB954;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 24px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: black;
+        }
+
+        button:hover {
+            background: #1ed760;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Review Panel */
+        #reviewPanel, #resultsPanel {
+            background: #282828;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        #reviewTitle {
+            font-size: 18px;
+            margin-bottom: 16px;
+        }
+
+        /* Review Table */
+        #fileList table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+
+        #fileList th, #fileList td {
+            padding: 12px 8px;
+            text-align: left;
+            border-bottom: 1px solid #3a3a3a;
+        }
+
+        #fileList th {
+            color: #b3b3b3;
+            font-weight: 500;
+            font-size: 12px;
+        }
+
+        #fileList td {
+            font-size: 14px;
+        }
+
+        /* Badges */
+        .badge-auto {
+            background: #8b5cf6;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            display: inline-block;
+            margin-right: 8px;
+        }
+
+        .badge-specific {
+            background: #f59e0b;
+            color: black;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            display: inline-block;
+            margin-right: 8px;
+        }
+
+        /* Status */
+        .status-success {
+            color: #1DB954;
+        }
+
+        .status-pending {
+            color: #f39c12;
+        }
+
+        .status-failed {
+            color: #e74c3c;
+        }
+
+        /* Artist Input in Auto Mode */
+        .artist-input {
+            background: #3a3a3a;
+            border: 1px solid #4a4a4a;
+            border-radius: 6px;
+            padding: 6px 10px;
+            color: white;
+            width: 140px;
+        }
+
+        .artist-input:focus {
+            outline: none;
+            border-color: #1DB954;
+        }
+
+        .create-btn {
+            background: #1DB954;
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-size: 11px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        #progress {
+            margin-top: 16px;
+            padding: 10px;
+            background: #1a1a1a;
+            border-radius: 8px;
+            font-size: 13px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📦 Wave Bulk Upload</h1>
+        <p class="subtitle">Upload multiple MP3 files at once. Choose your upload mode below.</p>
+        
+        <div class="mode-selector">
+            <button id="autoModeBtn" class="mode-btn active">🔍 Auto-Detect Artist</button>
+            <button id="specificModeBtn" class="mode-btn">🎯 Specific Artist</button>
+        </div>
+        
+        <div id="specificArtistPanel" style="display:none;" class="artist-selector">
+            <label>🎤 Select Artist for ALL songs:</label>
+            <div class="search-container">
+                <input type="text" 
+                       id="artistSearchInput" 
+                       placeholder="🔍 Search or type artist name..." 
+                       autocomplete="off">
+                <div id="artistDropdownResults"></div>
+            </div>
+            <div id="selectedArtistDisplay" style="display: none;" class="selected-artist-badge">
+                <span class="artist-badge">
+                    🎤 <span id="selectedArtistName"></span>
+                    <button id="clearSelectedArtist" class="clear-artist">✕</button>
+                </span>
+            </div>
+            <p class="info-text">
+                ✓ Every MP3 file will be assigned to this artist<br>
+                ✓ Type to search from existing artists or create a new one
+            </p>
+        </div>
+        
+        <div class="upload-area">
+            <input type="file" id="fileInput" accept=".mp3" multiple>
+            <button id="reviewBtn">🔍 Review Files</button>
+        </div>
+        
+        <div id="reviewPanel" style="display:none;">
+            <h2 id="reviewTitle">📋 Review & Upload</h2>
+            <div id="fileList"></div>
+            <div class="button-group">
+                <button id="uploadBtn">▶ Upload All</button>
+                <button id="cancelBtn">Cancel</button>
+            </div>
+            <div id="progress"></div>
+        </div>
+        
+        <div id="resultsPanel" style="display:none;">
+            <h2>✅ Upload Complete</h2>
+            <div id="results"></div>
+            <button id="doneBtn">Close</button>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            console.log('🚀 Bulk upload script starting...');
+            
+            // Token handling
+            const urlParams = new URLSearchParams(window.location.search);
+            let token = urlParams.get('token');
+            
+            if (token) {
+                localStorage.setItem('token', token);
+            } else {
+                token = localStorage.getItem('token');
+            }
+            
+            if (!token) {
+                alert('Please log into Wave app first');
+                window.location.href = 'http://localhost:5000';
+                return;
+            }
+            
+            const API_URL = 'http://localhost:5000/api';
+            
+            // DOM Elements
+            const fileInput = document.getElementById('fileInput');
+            const reviewBtn = document.getElementById('reviewBtn');
+            const reviewPanel = document.getElementById('reviewPanel');
+            const fileListDiv = document.getElementById('fileList');
+            const uploadBtn = document.getElementById('uploadBtn');
+            const cancelBtn = document.getElementById('cancelBtn');
+            const progressDiv = document.getElementById('progress');
+            const resultsPanel = document.getElementById('resultsPanel');
+            const resultsDiv = document.getElementById('results');
+            const doneBtn = document.getElementById('doneBtn');
+            const reviewTitle = document.getElementById('reviewTitle');
+            const autoModeBtn = document.getElementById('autoModeBtn');
+            const specificModeBtn = document.getElementById('specificModeBtn');
+            const specificArtistPanel = document.getElementById('specificArtistPanel');
+            
+            // Search elements
+            const artistSearchInput = document.getElementById('artistSearchInput');
+            const artistDropdownResults = document.getElementById('artistDropdownResults');
+            const selectedArtistDisplay = document.getElementById('selectedArtistDisplay');
+            const selectedArtistName = document.getElementById('selectedArtistName');
+            const clearSelectedArtist = document.getElementById('clearSelectedArtist');
+            
+            // State
+            let currentMode = 'auto';
+            let filesData = [];
+            let selectedSpecificArtist = '';
+            
+            // Artist list for auto-detect
+            const knownArtists = [
+                'NSG', 'Kojo Funds', 'B Young', 'J Hus', 'Naira Marley',
+                'Burna Boy', 'Jorja Smith', 'Ruger', 'Stormzy', 'AREA BOYZ',
+                'Tems', 'T MULLA', 'Hardy Caprio', 'Abra Cadabra', 'Tion Wayne',
+                'Koffee', 'RAYE', 'WSTRN', 'Koomz', 'KiDi', 'Adekunle Gold', 'WizKid',
+                'Rema', 'Metro Boomin', 'Don Toliver', 'BEAM', 'Rotimi', 'Akon',
+                'Musa Keys', 'Davido', 'Maleek Berry', 'CKay', 'Major Lazer', 'Nasty C',
+                'Ice', 'Tyla', 'Afro B', 'Darassa', 'Khaligraph Jones', 'The FaNaTiX',
+                'Idris Elba', 'Lil Tjay', 'FAVE', 'OMAHA LAY', 'Runtown', 'Fireboy DML',
+                '21 Savage', 'Blxst', 'Lojay', 'Sarz', 'SAINT JHN', 'Ayra Starr',
+                'Shallipopi', 'Amaarae', 'Kali Uchis', 'Joshua Baraka', 'JAE5',
+                'WizTheMc', 'Zinoleesky', 'Dave', 'Bien', '1da Banton', 'Gunna',
+                'Ed Sheeran'
+            ];
+            
+            // Helper functions
+            function escapeHtml(str) {
+                if (!str) return '';
+                return str.replace(/[&<>]/g, function(m) {
+                    if (m === '&') return '&amp;';
+                    if (m === '<') return '&lt;';
+                    if (m === '>') return '&gt;';
+                    return m;
+                });
+            }
+            
+            function showToast(message, isError = false) {
+                const toast = document.createElement('div');
+                toast.textContent = message;
+                toast.style.position = 'fixed';
+                toast.style.bottom = '30px';
+                toast.style.left = '50%';
+                toast.style.transform = 'translateX(-50%)';
+                toast.style.background = isError ? '#e74c3c' : '#1DB954';
+                toast.style.color = isError ? 'white' : 'black';
+                toast.style.padding = '12px 24px';
+                toast.style.borderRadius = '30px';
+                toast.style.fontWeight = 'bold';
+                toast.style.zIndex = '2000';
+                toast.style.fontSize = '14px';
+                toast.style.whiteSpace = 'nowrap';
+                document.body.appendChild(toast);
+                setTimeout(() => toast.remove(), 3000);
+            }
+            
+            function extractArtistFromFilename(filename) {
+                const nameWithoutExt = filename.replace(/\.[^/.]+$/, '');
+                const sortedArtists = [...knownArtists].sort((a, b) => b.length - a.length);
+                
+                for (const artist of sortedArtists) {
+                    if (nameWithoutExt.toLowerCase().endsWith(artist.toLowerCase())) {
+                        const title = nameWithoutExt.slice(0, -artist.length).trim();
+                        return { artist, title: title || nameWithoutExt };
+                    }
+                }
+                return { artist: '', title: nameWithoutExt };
+            }
+            
+            async function checkArtistExists(artistName) {
+                if (!artistName) return false;
+                try {
+                    const response = await fetch(`${API_URL}/songs/admin/check-artist/${encodeURIComponent(artistName)}`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    const data = await response.json();
+                    return data.exists === true;
+                } catch (error) {
+                    return false;
+                }
+            }
+            
+            async function createArtistInDB(artistName) {
+                const formData = new FormData();
+                formData.append('username', artistName);
+                formData.append('genre', '');
+                formData.append('bio', 'Auto-created from bulk upload');
+                
+                try {
+                    const response = await fetch(`${API_URL}/songs/admin/create-artist`, {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${token}` },
+                        body: formData
+                    });
+                    const data = await response.json();
+                    return data.artist || data.message;
+                } catch (error) {
+                    return null;
+                }
+            }
+            
+            // Search functionality for Specific Artist mode
+            let debounceTimer;
+            
+            function setupSearch() {
+                if (!artistSearchInput) return;
+                
+                artistSearchInput.addEventListener('input', function() {
+                    const query = this.value.trim();
+                    if (debounceTimer) clearTimeout(debounceTimer);
+                    
+                    if (query === '') {
+                        artistDropdownResults.style.display = 'none';
+                        return;
+                    }
+                    
+                    debounceTimer = setTimeout(async () => {
+                        try {
+                            const response = await fetch(`${API_URL}/songs/admin/search-artists/${encodeURIComponent(query)}`, {
+                                headers: { 'Authorization': `Bearer ${token}` }
+                            });
+                            const artists = await response.json();
+                            
+                            if (artists.length === 0) {
+                                artistDropdownResults.innerHTML = `<div class="dropdown-item create-item" onclick="window.selectSpecificArtist('${escapeHtml(query)}', true)">➕ Create "${escapeHtml(query)}"</div>`;
+                            } else {
+                                artistDropdownResults.innerHTML = artists.map(artist => 
+                                    `<div class="dropdown-item" onclick="window.selectSpecificArtist('${escapeHtml(artist.name)}', false)">🎤 ${escapeHtml(artist.name)}</div>`
+                                ).join('');
+                            }
+                            artistDropdownResults.style.display = 'block';
+                        } catch (error) {
+                            const filtered = knownArtists.filter(a => a.toLowerCase().includes(query.toLowerCase()));
+                            if (filtered.length === 0) {
+                                artistDropdownResults.innerHTML = `<div class="dropdown-item create-item" onclick="window.selectSpecificArtist('${escapeHtml(query)}', true)">➕ Create "${escapeHtml(query)}"</div>`;
+                            } else {
+                                artistDropdownResults.innerHTML = filtered.map(artist => 
+                                    `<div class="dropdown-item" onclick="window.selectSpecificArtist('${escapeHtml(artist)}', false)">🎤 ${escapeHtml(artist)}</div>`
+                                ).join('');
+                            }
+                            artistDropdownResults.style.display = 'block';
+                        }
+                    }, 300);
+                });
+                
+                document.addEventListener('click', function(e) {
+                    if (artistSearchInput && !artistSearchInput.contains(e.target) && 
+                        artistDropdownResults && !artistDropdownResults.contains(e.target)) {
+                        artistDropdownResults.style.display = 'none';
+                    }
+                });
+            }
+            
+            window.selectSpecificArtist = function(artistName, isNew) {
+                selectedSpecificArtist = artistName;
+                artistSearchInput.value = artistName;
+                artistDropdownResults.style.display = 'none';
+                selectedArtistName.textContent = artistName;
+                selectedArtistDisplay.style.display = 'block';
+                showToast(`Selected artist: ${artistName}`);
+            };
+            
+            if (clearSelectedArtist) {
+                clearSelectedArtist.addEventListener('click', function() {
+                    selectedSpecificArtist = '';
+                    artistSearchInput.value = '';
+                    selectedArtistDisplay.style.display = 'none';
+                    showToast('Artist cleared');
+                });
+            }
+            
+            // Mode switching
+            autoModeBtn.addEventListener('click', () => {
+                currentMode = 'auto';
+                autoModeBtn.classList.add('active');
+                specificModeBtn.classList.remove('active');
+                specificArtistPanel.style.display = 'none';
+                reviewPanel.style.display = 'none';
+                fileInput.value = '';
+                filesData = [];
+                showToast('Auto-Detect mode: Artist extracted from filename');
+            });
+            
+            specificModeBtn.addEventListener('click', () => {
+                currentMode = 'specific';
+                specificModeBtn.classList.add('active');
+                autoModeBtn.classList.remove('active');
+                specificArtistPanel.style.display = 'block';
+                reviewPanel.style.display = 'none';
+                fileInput.value = '';
+                filesData = [];
+                showToast('Specific Artist mode: Search and select an artist');
+            });
+            
+            // Review button
+            reviewBtn.addEventListener('click', async () => {
+                const files = fileInput.files;
+                if (files.length === 0) {
+                    alert('Please select MP3 files first');
+                    return;
+                }
+                
+                if (currentMode === 'specific') {
+                    if (!selectedSpecificArtist) {
+                        alert('Please search and select an artist first');
+                        return;
+                    }
+                    
+                    const artistExists = await checkArtistExists(selectedSpecificArtist);
+                    if (!artistExists) {
+                        const createArtist = confirm(`Artist "${selectedSpecificArtist}" not found. Create it now?`);
+                        if (createArtist) {
+                            await createArtistInDB(selectedSpecificArtist);
+                            showToast(`✅ Artist "${selectedSpecificArtist}" created!`);
+                        } else {
+                            alert('Please select an existing artist or create one.');
+                            return;
+                        }
+                    }
+                }
+                
+                filesData = [];
+                
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    
+                    if (currentMode === 'specific') {
+                        let title = file.name.replace(/\.[^/.]+$/, '');
+                        if (selectedSpecificArtist) {
+                            const artistRegex = new RegExp(`${selectedSpecificArtist.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i');
+                            title = title.replace(artistRegex, '').trim();
+                            title = title.replace(/\s+/g, ' ').trim();
+                        }
+                        if (!title || title.length < 2) title = file.name.replace(/\.[^/.]+$/, '');
+                        
+                        filesData.push({
+                            file: file,
+                            title: title,
+                            artist: selectedSpecificArtist,
+                            artistExists: true,
+                            ready: true
+                        });
+                    } else {
+                        const { artist, title } = extractArtistFromFilename(file.name);
+                        let artistExists = false;
+                        if (artist) {
+                            artistExists = await checkArtistExists(artist);
+                        }
+                        filesData.push({
+                            file: file,
+                            title: title,
+                            artist: artist,
+                            artistExists: artistExists,
+                            ready: artist ? artistExists : false
+                        });
+                    }
+                }
+                
+                displayFileList();
+                
+                if (currentMode === 'specific') {
+                    reviewTitle.innerHTML = `📋 Review & Upload (All ${filesData.length} songs → ${selectedSpecificArtist})`;
+                } else {
+                    reviewTitle.innerHTML = '📋 Review & Upload (Auto-Detected Artists)';
+                }
+                
+                reviewPanel.style.display = 'block';
+                resultsPanel.style.display = 'none';
+                progressDiv.innerHTML = '';
+            });
+            
+            function displayFileList() {
+                if (!fileListDiv) return;
+                
+                let html = `<table><thead><tr>
+                    <th>#</th>
+                    <th>Song Title</th>
+                    <th>Artist</th>
+                    <th>Status</th>
+                    ${currentMode === 'auto' ? '<th>Action</th>' : ''}
+                </tr></thead><tbody>`;
+                
+                for (let i = 0; i < filesData.length; i++) {
+                    const item = filesData[i];
+                    const modeBadge = currentMode === 'specific' 
+                        ? '<span class="badge-specific">Specific</span>' 
+                        : '<span class="badge-auto">Auto</span>';
+                    
+                    if (currentMode === 'specific') {
+                        html += `<tr>
+                            <td>${i+1} ${modeBadge}</td>
+                            <td><strong>${escapeHtml(item.title)}</strong></td>
+                            <td>${escapeHtml(item.artist)}</td>
+                            <td class="status-success">✅ Ready to upload</td>
+                        </tr>`;
+                    } else {
+                        if (item.artist && item.artistExists) {
+                            html += `<tr id="row_${i}">
+                                <td>${i+1} ${modeBadge}</td>
+                                <td><strong>${escapeHtml(item.title)}</strong></td>
+                                <td>${escapeHtml(item.artist)}</td>
+                                <td id="status_${i}" class="status-success">✅ Ready</td>
+                                <td>-</td>
+                            </tr>`;
+                        } else if (item.artist && !item.artistExists) {
+                            html += `<tr id="row_${i}">
+                                <td>${i+1} ${modeBadge}</td>
+                                <td><strong>${escapeHtml(item.title)}</strong></td>
+                                <td>${escapeHtml(item.artist)}</td>
+                                <td id="status_${i}" class="status-pending">⚠️ Artist not found</td>
+                                <td><button onclick="window.createMissingArtist(${i})" id="createBtn_${i}" class="create-btn">➕ Create Artist</button></td>
+                            </tr>`;
+                        } else {
+                            html += `<tr id="row_${i}">
+                                <td>${i+1} ${modeBadge}</td>
+                                <td><strong>${escapeHtml(item.title)}</strong></td>
+                                <td><input type="text" id="artistInput_${i}" placeholder="Type artist name" class="artist-input" onchange="window.updateArtist(${i}, this.value)"></td>
+                                <td id="status_${i}" class="status-pending">⚠️ Missing artist</td>
+                                <td id="action_${i}">-</td>
+                            </tr>`;
+                        }
+                    }
+                }
+                html += '</tbody></tr>';
+                fileListDiv.innerHTML = html;
+            }
+            
+            window.updateArtist = async function(index, artistName) {
+                const item = filesData[index];
+                if (!item) return;
+                item.artist = artistName.trim();
+                item.artistExists = item.artist ? await checkArtistExists(item.artist) : false;
+                
+                const statusCell = document.getElementById(`status_${index}`);
+                const actionCell = document.getElementById(`action_${index}`);
+                
+                if (!item.artist) {
+                    statusCell.innerHTML = '⚠️ Missing artist';
+                    statusCell.className = 'status-pending';
+                    if (actionCell) actionCell.innerHTML = '-';
+                    item.ready = false;
+                } else if (!item.artistExists) {
+                    statusCell.innerHTML = '⚠️ Artist not found';
+                    statusCell.className = 'status-pending';
+                    if (actionCell) actionCell.innerHTML = `<button onclick="window.createMissingArtist(${index})" class="create-btn">➕ Create Artist</button>`;
+                    item.ready = false;
+                } else {
+                    statusCell.innerHTML = '✅ Ready';
+                    statusCell.className = 'status-success';
+                    if (actionCell) actionCell.innerHTML = '-';
+                    item.ready = true;
+                }
+            };
+            
+            window.createMissingArtist = async function(index) {
+                const item = filesData[index];
+                if (!item || !item.artist) return;
+                
+                const statusCell = document.getElementById(`status_${index}`);
+                const createBtn = document.getElementById(`createBtn_${index}`);
+                
+                statusCell.innerHTML = '🔄 Creating...';
+                statusCell.className = 'status-pending';
+                if (createBtn) {
+                    createBtn.disabled = true;
+                    createBtn.textContent = '⏳...';
+                }
+                
+                const result = await createArtistInDB(item.artist);
+                
+                if (result) {
+                    item.artistExists = true;
+                    item.ready = true;
+                    statusCell.innerHTML = '✅ Artist created! Ready';
+                    statusCell.className = 'status-success';
+                    if (createBtn) {
+                        createBtn.innerHTML = '✅ Created';
+                        createBtn.disabled = true;
+                    }
+                } else {
+                    statusCell.innerHTML = '❌ Failed to create';
+                    statusCell.className = 'status-failed';
+                    if (createBtn) {
+                        createBtn.innerHTML = '⚠️ Retry';
+                        createBtn.disabled = false;
+                    }
+                    item.ready = false;
+                }
+            };
+            
+            cancelBtn.addEventListener('click', () => {
+                reviewPanel.style.display = 'none';
+                fileInput.value = '';
+                filesData = [];
+            });
+            
+            uploadBtn.addEventListener('click', async () => {
+                const readyFiles = filesData.filter(f => f.ready);
+                if (readyFiles.length === 0) {
+                    alert('No files ready. Fill in missing artists or create them first.');
+                    return;
+                }
+                
+                uploadBtn.disabled = true;
+                uploadBtn.textContent = '⏳ Uploading...';
+                
+                let success = 0;
+                let failed = 0;
+                const failedDetails = [];
+                
+                for (let i = 0; i < filesData.length; i++) {
+                    const item = filesData[i];
+                    if (!item.ready) continue;
+                    
+                    const statusCell = document.getElementById(`status_${i}`);
+                    if (statusCell) {
+                        statusCell.innerHTML = '🔄 Uploading...';
+                        statusCell.className = 'status-pending';
+                    }
+                    
+                    const formData = new FormData();
+                    formData.append('title', item.title);
+                    formData.append('artist', item.artist);
+                    formData.append('audio', item.file);
+                    
+                    try {
+                        const response = await fetch(`${API_URL}/songs/admin/upload`, {
+                            method: 'POST',
+                            headers: { 'Authorization': `Bearer ${token}` },
+                            body: formData
+                        });
+                        const data = await response.json();
+                        
+                        if (data.song || data.message) {
+                            if (statusCell) {
+                                statusCell.innerHTML = '✅ Uploaded!';
+                                statusCell.className = 'status-success';
+                            }
+                            success++;
+                        } else {
+                            if (statusCell) {
+                                statusCell.innerHTML = `❌ ${data.error || 'Failed'}`;
+                                statusCell.className = 'status-failed';
+                            }
+                            failed++;
+                            failedDetails.push({ title: item.title, artist: item.artist, reason: data.error || 'Upload failed' });
+                        }
+                    } catch (error) {
+                        if (statusCell) {
+                            statusCell.innerHTML = '❌ Network error';
+                            statusCell.className = 'status-failed';
+                        }
+                        failed++;
+                        failedDetails.push({ title: item.title, artist: item.artist, reason: 'Network error' });
+                    }
+                    progressDiv.innerHTML = `Progress: ${success + failed}/${readyFiles.length} (✅ ${success} | ❌ ${failed})`;
+                }
+                
+                let resultsHtml = `<div style="text-align:center; padding:20px;">
+                    <div style="font-size:48px;">${failed === 0 ? '🎉' : '📊'}</div>
+                    <div style="color:#1DB954; font-size:24px;">✅ ${success} Successful</div>`;
+                if (failed > 0) {
+                    resultsHtml += `<div style="color:#e74c3c; font-size:24px;">❌ ${failed} Failed</div>`;
+                    resultsHtml += `<div style="margin-top:20px; text-align:left;"><h4>Failed:</h4><ul>`;
+                    for (const f of failedDetails) {
+                        resultsHtml += `<li><strong>${escapeHtml(f.title)}</strong> - ${escapeHtml(f.reason)}</li>`;
+                    }
+                    resultsHtml += `</ul></div>`;
+                }
+                resultsHtml += `<button id="returnToWaveBtn" style="margin-top:20px;">🏠 Return to Wave</button></div>`;
+                
+                resultsDiv.innerHTML = resultsHtml;
+                reviewPanel.style.display = 'none';
+                resultsPanel.style.display = 'block';
+                fileInput.value = '';
+                
+                document.getElementById('returnToWaveBtn')?.addEventListener('click', () => {
+                    window.location.href = 'http://localhost:5000';
+                });
+                
+                uploadBtn.disabled = false;
+                uploadBtn.textContent = '▶ Upload All';
+            });
+            
+            doneBtn.addEventListener('click', () => {
+                resultsPanel.style.display = 'none';
+            });
+            
+            // Initialize
+            setupSearch();
+            console.log('✅ Bulk upload ready. Mode: auto');
+        })();
+    </script>
+</body>
+</html>

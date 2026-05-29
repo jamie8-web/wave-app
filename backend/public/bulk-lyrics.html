@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bulk Lyrics Upload - Wave</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #121212;
+            color: white;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: #181818;
+            padding: 24px;
+            border-radius: 16px;
+        }
+
+        h1 {
+            color: #1DB954;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: #b3b3b3;
+            margin-bottom: 24px;
+        }
+
+        .artist-section {
+            background: #282828;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+
+        .artist-search {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+            position: relative;
+        }
+
+        .artist-search input {
+            flex: 1;
+            background: #3a3a3a;
+            border: 1px solid #4a4a4a;
+            border-radius: 8px;
+            padding: 12px;
+            color: white;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .artist-search input:focus {
+            border-color: #1DB954;
+        }
+
+        .artist-search button {
+            background: #1DB954;
+            color: black;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .autocomplete-list {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: #3a3a3a;
+            border-radius: 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 100;
+            display: none;
+        }
+
+        .autocomplete-item {
+            padding: 10px 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid #4a4a4a;
+        }
+
+        .autocomplete-item:hover {
+            background: #4a4a4a;
+        }
+
+        .artist-info {
+            background: #3a3a3a;
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 16px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            cursor: pointer;
+        }
+
+        .artist-info img {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .artist-info h3 {
+            color: #1DB954;
+        }
+
+        .songs-list {
+            background: #282828;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 24px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .song-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            border-bottom: 1px solid #404040;
+        }
+
+        .song-item:last-child {
+            border-bottom: none;
+        }
+
+        .song-title {
+            flex: 1;
+            font-size: 14px;
+        }
+
+        .song-title small {
+            color: #b3b3b3;
+            font-size: 11px;
+        }
+
+        .upload-area {
+            background: #282828;
+            border: 2px dashed #404040;
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 24px;
+            cursor: pointer;
+        }
+
+        .upload-area:hover {
+            border-color: #1DB954;
+        }
+
+        .file-list {
+            background: #282828;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 24px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .file-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            border-bottom: 1px solid #404040;
+        }
+
+        .file-name {
+            flex: 1;
+            font-size: 13px;
+        }
+
+        .file-match select {
+            width: 200px;
+            background: #3a3a3a;
+            border: 1px solid #4a4a4a;
+            border-radius: 6px;
+            padding: 8px;
+            color: white;
+            font-size: 12px;
+        }
+
+        .status {
+            width: 80px;
+            font-size: 12px;
+            text-align: right;
+        }
+
+        .status.success { color: #1DB954; }
+        .status.pending { color: #f39c12; }
+        .status.error { color: #e74c3c; }
+
+        button {
+            background: #1DB954;
+            color: black;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 24px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+        }
+
+        .btn-secondary {
+            background: #404040;
+            color: white;
+        }
+
+        .progress-bar {
+            background: #404040;
+            border-radius: 4px;
+            height: 4px;
+            margin-top: 16px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            background: #1DB954;
+            height: 100%;
+            width: 0%;
+        }
+
+        .results {
+            margin-top: 24px;
+            padding: 20px;
+            background: #282828;
+            border-radius: 12px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📝 Bulk Lyrics Upload</h1>
+        <p class="subtitle">Step 1: Select Artist | Step 2: Upload Lyrics Files | Step 3: Match to Songs</p>
+
+        <div class="artist-section">
+            <div class="artist-search">
+                <div style="position: relative; flex: 1;">
+                    <input type="text" id="artistSearch" placeholder="🔍 Type artist name..." autocomplete="off" oninput="searchArtistsAutocomplete(this.value)">
+                    <div id="autocompleteList" class="autocomplete-list"></div>
+                </div>
+                <button onclick="searchArtist()">Search</button>
+            </div>
+            <div id="artistResult"></div>
+        </div>
+
+        <div id="songsContainer" style="display: none;">
+            <div class="songs-list">
+                <h3 style="margin-bottom: 16px;">🎤 Songs by <span id="artistNameDisplay"></span></h3>
+                <div id="songsList"></div>
+            </div>
+
+            <div class="upload-area" id="uploadArea">
+                <input type="file" id="fileInput" accept=".txt,.lrc" multiple style="display: none;">
+                <p>📄 Click to upload lyrics files (.txt, .lrc)</p>
+                <p style="font-size: 12px; color: #b3b3b3;">Upload multiple files and match each to a song</p>
+            </div>
+
+            <div id="fileListContainer" style="display: none;">
+                <div class="file-list">
+                    <h3 style="margin-bottom: 16px;">📋 Match Lyrics to Songs</h3>
+                    <div id="fileList"></div>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 12px;">
+                <button id="uploadBtn" style="display: none;">📤 Upload All Lyrics</button>
+                <button id="cancelBtn" class="btn-secondary" style="display: none;">Cancel</button>
+            </div>
+
+            <div class="progress-bar" id="progressBar" style="display: none;">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+        </div>
+
+        <div id="results" class="results"></div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:5000/api';
+        let token = localStorage.getItem('token');
+        
+        if (!token) {
+            const urlParams = new URLSearchParams(window.location.search);
+            token = urlParams.get('token');
+            if (token) {
+                localStorage.setItem('token', token);
+            } else {
+                alert('Please log in to Wave app first');
+                window.location.href = 'http://localhost:5000';
+            }
+        }
+
+        let selectedArtist = null;
+        let artistSongs = [];
+        let lyricsFiles = [];
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+
+        function showToast(message, isError = false) {
+            const toast = document.createElement('div');
+            toast.textContent = message;
+            toast.style.cssText = `
+                position: fixed;
+                bottom: 30px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: ${isError ? '#e74c3c' : '#1DB954'};
+                color: ${isError ? 'white' : 'black'};
+                padding: 12px 24px;
+                border-radius: 30px;
+                font-weight: bold;
+                z-index: 2000;
+                font-size: 14px;
+            `;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        async function searchArtistsAutocomplete(query) {
+            const autocompleteList = document.getElementById('autocompleteList');
+            
+            if (!query || query.trim().length < 1) {
+                autocompleteList.style.display = 'none';
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_URL}/artists/search/${encodeURIComponent(query)}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const artists = await response.json();
+                
+                if (artists.length === 0) {
+                    autocompleteList.style.display = 'none';
+                    return;
+                }
+                
+                autocompleteList.innerHTML = artists.map(artist => `
+                    <div class="autocomplete-item" onclick="selectArtistFromAutocomplete('${artist._id}', '${escapeHtml(artist.name)}', '${artist.image || ''}')">
+                        ${artist.image ? `<img src="${API_URL.replace('/api', '')}${artist.image}" style="width: 30px; height: 30px; border-radius: 50%; object-fit: cover;">` : '<div style="width:30px;height:30px;border-radius:50%;background:#1DB954;display:flex;align-items:center;justify-content:center;">🎤</div>'}
+                        <span>${escapeHtml(artist.name)}</span>
+                    </div>
+                `).join('');
+                
+                autocompleteList.style.display = 'block';
+            } catch (error) {
+                console.error('Autocomplete error:', error);
+            }
+        }
+
+        function selectArtistFromAutocomplete(id, name, image) {
+            document.getElementById('artistSearch').value = name;
+            document.getElementById('autocompleteList').style.display = 'none';
+            selectArtist(id, name, image);
+        }
+
+        async function searchArtist() {
+            const query = document.getElementById('artistSearch').value.trim();
+            if (!query) {
+                showToast('Enter an artist name', true);
+                return;
+            }
+
+            const resultDiv = document.getElementById('artistResult');
+            resultDiv.innerHTML = '<p style="color: #f39c12;">Searching...</p>';
+
+            try {
+                const response = await fetch(`${API_URL}/artists/search/${encodeURIComponent(query)}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const artists = await response.json();
+
+                if (artists.length === 0) {
+                    resultDiv.innerHTML = '<p style="color: #e74c3c;">No artist found. Create one in Admin Panel first.</p>';
+                    return;
+                }
+
+                let html = '<div class="artist-info" onclick="selectArtist(\'' + artists[0]._id + '\', \'' + escapeHtml(artists[0].name) + '\', \'' + (artists[0].image || '') + '\')">';
+                if (artists[0].image) {
+                    html += `<img src="${API_URL.replace('/api', '')}${artists[0].image}" onerror="this.style.display='none'">`;
+                } else {
+                    html += `<div style="width:60px;height:60px;border-radius:50%;background:#1DB954;display:flex;align-items:center;justify-content:center;font-size:30px;">🎤</div>`;
+                }
+                html += `<div><h3>${escapeHtml(artists[0].name)}</h3><p style="color:#b3b3b3;">Click to select</p></div>`;
+                html += `</div>`;
+
+                resultDiv.innerHTML = html;
+            } catch (error) {
+                resultDiv.innerHTML = '<p style="color: #e74c3c;">Error searching</p>';
+            }
+        }
+
+        async function selectArtist(id, name, image) {
+            selectedArtist = { id, name, image };
+            
+            document.getElementById('artistResult').innerHTML = `
+                <div class="artist-info" style="cursor: default;">
+                    ${image ? `<img src="${API_URL.replace('/api', '')}${image}">` : '<div style="width:60px;height:60px;border-radius:50%;background:#1DB954;display:flex;align-items:center;justify-content:center;font-size:30px;">🎤</div>'}
+                    <div><h3>${escapeHtml(name)}</h3><p style="color:#1DB954;">✓ Selected</p></div>
+                </div>
+            `;
+
+            await loadArtistSongs(id);
+        }
+
+        async function loadArtistSongs(artistId) {
+            const songsContainer = document.getElementById('songsContainer');
+            const songsListDiv = document.getElementById('songsList');
+            const artistNameDisplay = document.getElementById('artistNameDisplay');
+            
+            songsContainer.style.display = 'block';
+            artistNameDisplay.textContent = selectedArtist.name;
+            songsListDiv.innerHTML = '<p style="color:#f39c12;">Loading songs...</p>';
+
+            try {
+                const response = await fetch(`${API_URL}/artists/${artistId}/songs`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                artistSongs = await response.json();
+
+                if (artistSongs.length === 0) {
+                    songsListDiv.innerHTML = '<p style="color:#e74c3c;">No songs found for this artist.</p>';
+                    return;
+                }
+
+                let html = '';
+                for (let song of artistSongs) {
+                    html += `
+                        <div class="song-item">
+                            <div class="song-title">
+                                ${escapeHtml(song.title)}
+                                <small>${escapeHtml(song.album || 'Single')}</small>
+                            </div>
+                        </div>
+                    `;
+                }
+                songsListDiv.innerHTML = html;
+            } catch (error) {
+                songsListDiv.innerHTML = '<p style="color:#e74c3c;">Error loading songs</p>';
+            }
+        }
+
+        function displayFileList() {
+            const container = document.getElementById('fileListContainer');
+            const fileListDiv = document.getElementById('fileList');
+            const uploadBtn = document.getElementById('uploadBtn');
+            const cancelBtn = document.getElementById('cancelBtn');
+            
+            if (lyricsFiles.length === 0) {
+                container.style.display = 'none';
+                uploadBtn.style.display = 'none';
+                cancelBtn.style.display = 'none';
+                return;
+            }
+            
+            container.style.display = 'block';
+            uploadBtn.style.display = 'inline-block';
+            cancelBtn.style.display = 'inline-block';
+            
+            let html = '';
+            for (let i = 0; i < lyricsFiles.length; i++) {
+                const file = lyricsFiles[i];
+                html += `
+                    <div class="file-item" data-index="${i}">
+                        <div class="file-name">${escapeHtml(file.name)}</div>
+                        <div class="file-match">
+                            <select id="songSelect_${i}" onchange="updateMatch(${i}, this.value)">
+                                <option value="">-- Select song --</option>
+                                ${artistSongs.map(song => `
+                                    <option value="${song._id}" ${file.selectedSongId === song._id ? 'selected' : ''}>
+                                        ${escapeHtml(song.title)}
+                                    </option>
+                                `).join('')}
+                            </select>
+                        </div>
+                        <div class="status pending" id="status_${i}">Pending</div>
+                    </div>
+                `;
+            }
+            fileListDiv.innerHTML = html;
+        }
+
+        window.updateMatch = function(index, songId) {
+            lyricsFiles[index].selectedSongId = songId;
+            const statusEl = document.getElementById(`status_${index}`);
+            if (songId) {
+                statusEl.textContent = 'Ready';
+                statusEl.className = 'status success';
+            } else {
+                statusEl.textContent = 'Select song';
+                statusEl.className = 'status pending';
+            }
+        };
+
+        async function uploadLyrics() {
+            const uploadBtn = document.getElementById('uploadBtn');
+            const progressBar = document.getElementById('progressBar');
+            const progressFill = document.getElementById('progressFill');
+            const resultsDiv = document.getElementById('results');
+            
+            const readyFiles = lyricsFiles.filter(f => f.selectedSongId);
+            
+            if (readyFiles.length === 0) {
+                showToast('No files ready. Select a song for each lyrics file.', true);
+                return;
+            }
+            
+            uploadBtn.disabled = true;
+            progressBar.style.display = 'block';
+            resultsDiv.style.display = 'none';
+            
+            let success = 0;
+            let failed = 0;
+            const failedDetails = [];
+            
+            for (let i = 0; i < lyricsFiles.length; i++) {
+                const item = lyricsFiles[i];
+                const statusEl = document.getElementById(`status_${i}`);
+                
+                if (!item.selectedSongId) {
+                    continue;
+                }
+                
+                statusEl.textContent = 'Uploading...';
+                statusEl.className = 'status pending';
+                
+                const formData = new FormData();
+                formData.append('lyrics', item.file);
+                
+                try {
+                    const response = await fetch(`${API_URL}/songs/${item.selectedSongId}/lyrics`, {
+                        method: 'PUT',
+                        headers: { 'Authorization': `Bearer ${token}` },
+                        body: formData
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.message || data.song) {
+                        statusEl.textContent = '✅ Done';
+                        statusEl.className = 'status success';
+                        success++;
+                    } else {
+                        statusEl.textContent = '❌ Failed';
+                        statusEl.className = 'status error';
+                        failed++;
+                        failedDetails.push({ file: item.name, reason: data.error || 'Upload failed' });
+                    }
+                } catch (error) {
+                    statusEl.textContent = '❌ Error';
+                    statusEl.className = 'status error';
+                    failed++;
+                    failedDetails.push({ file: item.name, reason: 'Network error' });
+                }
+                
+                const progress = ((success + failed) / readyFiles.length) * 100;
+                progressFill.style.width = `${progress}%`;
+            }
+            
+            let resultsHtml = `<h3>✅ Upload Complete</h3>`;
+            resultsHtml += `<p style="color: #1DB954;">Successful: ${success}</p>`;
+            if (failed > 0) {
+                resultsHtml += `<p style="color: #e74c3c;">Failed: ${failed}</p>`;
+                resultsHtml += `<ul style="margin-top: 12px;">`;
+                for (let f of failedDetails) {
+                    resultsHtml += `<li><strong>${escapeHtml(f.file)}</strong> - ${escapeHtml(f.reason)}</li>`;
+                }
+                resultsHtml += `</ul>`;
+            }
+            resultsHtml += `<button onclick="location.reload()" style="margin-top: 16px;">📝 Upload More</button>`;
+            resultsHtml += `<button onclick="window.close()" class="btn-secondary" style="margin-top: 16px;">Close</button>`;
+            
+            resultsDiv.innerHTML = resultsHtml;
+            resultsDiv.style.display = 'block';
+            progressBar.style.display = 'none';
+            uploadBtn.disabled = false;
+        }
+
+        // File upload handler
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        
+        uploadArea.onclick = () => {
+            if (!selectedArtist) {
+                showToast('Please select an artist first', true);
+                return;
+            }
+            fileInput.click();
+        };
+        
+        fileInput.onchange = (e) => {
+            const files = Array.from(e.target.files);
+            
+            for (let file of files) {
+                lyricsFiles.push({
+                    file: file,
+                    name: file.name,
+                    selectedSongId: null
+                });
+            }
+            
+            displayFileList();
+        };
+        
+        document.getElementById('uploadBtn').onclick = uploadLyrics;
+        document.getElementById('cancelBtn').onclick = () => {
+            lyricsFiles = [];
+            displayFileList();
+            fileInput.value = '';
+        };
+        
+        // Drag and drop
+        uploadArea.ondragover = (e) => {
+            e.preventDefault();
+            uploadArea.style.borderColor = '#1DB954';
+        };
+        
+        uploadArea.ondragleave = (e) => {
+            e.preventDefault();
+            uploadArea.style.borderColor = '#404040';
+        };
+        
+        uploadArea.ondrop = (e) => {
+            e.preventDefault();
+            uploadArea.style.borderColor = '#404040';
+            
+            if (!selectedArtist) {
+                showToast('Please select an artist first', true);
+                return;
+            }
+            
+            const files = Array.from(e.dataTransfer.files).filter(f => f.name.endsWith('.txt') || f.name.endsWith('.lrc'));
+            
+            for (let file of files) {
+                lyricsFiles.push({
+                    file: file,
+                    name: file.name,
+                    selectedSongId: null
+                });
+            }
+            
+            displayFileList();
+        };
+
+        // Close autocomplete when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.artist-search')) {
+                document.getElementById('autocompleteList').style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

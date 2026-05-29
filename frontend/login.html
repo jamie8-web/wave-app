@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wave • Login | Music Streaming</title>
+
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+  />
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Roboto', sans-serif;
+    }
+
+    body {
+      width: 100%;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #000;
+      position: relative;
+    }
+
+    .background-video {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: -2;
+      filter: brightness(0.45) saturate(1.1);
+    }
+
+    .overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at center, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.65) 100%);
+      z-index: -1;
+    }
+
+    .glass-container {
+      width: 1000px;
+      height: 580px;
+      position: relative;
+      perspective: 1500px;
+    }
+
+    .card-flip {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transition: transform 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+      transform-style: preserve-3d;
+    }
+
+    .glass-container.flipped .card-flip {
+      transform: rotateY(180deg);
+    }
+
+    .panel {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      border-radius: 32px;
+      overflow: hidden;
+      backdrop-filter: blur(12px);
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      display: flex;
+    }
+
+    .panel-front {
+      transform: rotateY(0deg);
+    }
+
+    .panel-back {
+      transform: rotateY(180deg);
+    }
+
+    .left-panel {
+      flex: 1;
+      padding: 50px 40px;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      background: linear-gradient(135deg, rgba(29, 185, 84, 0.15), rgba(0, 0, 0, 0.3));
+      backdrop-filter: blur(4px);
+    }
+
+    .left-panel h1 {
+      font-size: 3.2rem;
+      font-weight: 800;
+      margin-bottom: 16px;
+      letter-spacing: -0.5px;
+      background: linear-gradient(135deg, #fff, #1DB954);
+      background-clip: text;
+      -webkit-background-clip: text;
+      color: transparent;
+    }
+
+    .left-panel p {
+      color: rgba(255, 255, 255, 0.8);
+      line-height: 1.6;
+      margin-bottom: 32px;
+      font-size: 0.95rem;
+    }
+
+    .wave-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(29, 185, 84, 0.2);
+      padding: 8px 16px;
+      border-radius: 40px;
+      width: fit-content;
+      margin-bottom: 24px;
+      border: 1px solid rgba(29, 185, 84, 0.4);
+    }
+
+    .wave-badge i {
+      color: #1DB954;
+      font-size: 18px;
+    }
+
+    .wave-badge span {
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .social-icons {
+      display: flex;
+      gap: 16px;
+      margin-top: 20px;
+    }
+
+    .social-icons i {
+      width: 44px;
+      height: 44px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.1);
+      cursor: pointer;
+      transition: all 0.25s ease;
+      font-size: 1.2rem;
+      backdrop-filter: blur(4px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .social-icons i:hover {
+      transform: translateY(-3px) scale(1.05);
+      background: #1DB954;
+      border-color: #1DB954;
+      color: black;
+    }
+
+    .right-panel {
+      width: 440px;
+      padding: 50px 45px;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(8px);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .right-panel h2 {
+      font-size: 2.2rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+      text-align: center;
+      letter-spacing: -0.3px;
+    }
+
+    .right-panel .sub {
+      text-align: center;
+      color: rgba(255, 255, 255, 0.6);
+      font-size: 0.85rem;
+      margin-bottom: 28px;
+    }
+
+    .input-group {
+      position: relative;
+      margin-bottom: 22px;
+    }
+
+    .input-group input {
+      width: 100%;
+      padding: 14px 48px 14px 18px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      outline: none;
+      border-radius: 40px;
+      background: rgba(255, 255, 255, 0.08);
+      color: white;
+      font-size: 0.95rem;
+      transition: all 0.25s ease;
+    }
+
+    .input-group input:focus {
+      border-color: #1DB954;
+      background: rgba(255, 255, 255, 0.12);
+      box-shadow: 0 0 0 3px rgba(29, 185, 84, 0.2);
+    }
+
+    .input-group input::placeholder {
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    .input-group i {
+      position: absolute;
+      top: 50%;
+      right: 18px;
+      transform: translateY(-50%);
+      color: rgba(255, 255, 255, 0.6);
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .input-group i:hover {
+      color: #1DB954;
+    }
+
+    .options {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 20px 0 28px;
+      font-size: 0.85rem;
+    }
+
+    .options label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      color: rgba(255, 255, 255, 0.8);
+    }
+
+    .options input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+      accent-color: #1DB954;
+    }
+
+    .options a {
+      color: #1DB954;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .options a:hover {
+      text-decoration: underline;
+    }
+
+    .terms {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 20px 0 28px;
+      font-size: 0.75rem;
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    .terms input {
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+      accent-color: #1DB954;
+    }
+
+    .terms a {
+      color: #1DB954;
+      text-decoration: none;
+    }
+
+    .terms a:hover {
+      text-decoration: underline;
+    }
+
+    .action-btn {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 40px;
+      background: linear-gradient(90deg, #1DB954, #0f8b3e);
+      color: black;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .action-btn:hover {
+      transform: scale(1.02);
+      box-shadow: 0 0 20px rgba(29, 185, 84, 0.5);
+      background: linear-gradient(90deg, #1ed760, #1DB954);
+    }
+
+    .flip-link {
+      margin-top: 28px;
+      text-align: center;
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 0.9rem;
+    }
+
+    .flip-link a {
+      color: #1DB954;
+      text-decoration: none;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .flip-link a:hover {
+      text-decoration: underline;
+    }
+
+    .toast-message {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1DB954;
+      color: black;
+      padding: 12px 28px;
+      border-radius: 50px;
+      font-weight: 600;
+      z-index: 1100;
+      font-size: 14px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+      animation: fadeInUp 0.3s ease;
+      pointer-events: none;
+    }
+
+    .toast-message.error {
+      background: #e74c3c;
+      color: white;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+    }
+
+    @media (max-width: 850px) {
+      .glass-container {
+        width: 95%;
+        height: auto;
+        min-height: 600px;
+      }
+      
+      .panel {
+        flex-direction: column;
+        position: relative;
+      }
+      
+      .right-panel {
+        width: 100%;
+        padding: 40px;
+      }
+      
+      .left-panel {
+        padding: 40px;
+        text-align: center;
+      }
+      
+      .social-icons {
+        justify-content: center;
+      }
+      
+      .wave-badge {
+        margin: 0 auto 24px auto;
+      }
+      
+      .left-panel h1 {
+        font-size: 2.5rem;
+      }
+      
+      .card-flip {
+        transform: none !important;
+      }
+      
+      .panel-back {
+        display: none;
+      }
+      
+      .glass-container.flipped .panel-front {
+        display: none;
+      }
+      
+      .glass-container.flipped .panel-back {
+        display: flex;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <video autoplay muted loop playsinline class="background-video" id="background-video">
+    <source src="https://videos.pexels.com/video-files/3129670/3129670-uhd_2560_1440_30fps.mp4" type="video/mp4">
+    <source src="https://assets.mixkit.co/videos/preview/mixkit-abstract-waves-of-light-3710-large.mp4" type="video/mp4">
+    <source src="https://cdn.pixabay.com/video/2023/06/22/169509-836060606_large.mp4" type="video/mp4">
+  </video>
+
+  <div class="overlay"></div>
+
+  <div class="glass-container" id="glassContainer">
+    <div class="card-flip">
+      
+      <!-- FRONT PANEL - LOGIN -->
+      <div class="panel panel-front">
+        <div class="left-panel">
+          <div class="wave-badge">
+            <i class="fas fa-water"></i>
+            <span>WAVE MUSIC</span>
+          </div>
+          <h1>Welcome Back!</h1>
+          <p>
+            Sign in to continue your musical journey. Stream millions of songs, create playlists, 
+            and discover new artists every day with Wave.
+          </p>
+          <div class="social-icons">
+            <i class="fab fa-facebook-f"></i>
+            <i class="fab fa-twitter"></i>
+            <i class="fab fa-instagram"></i>
+            <i class="fab fa-spotify"></i>
+          </div>
+        </div>
+
+        <div class="right-panel">
+          <h2>Sign In</h2>
+          <div class="sub">Welcome back</div>
+
+          <div class="input-group">
+            <input type="email" id="loginEmail" placeholder="Email Address" autocomplete="off" />
+            <i class="fa-solid fa-envelope"></i>
+          </div>
+
+          <div class="input-group">
+            <input type="password" id="loginPassword" placeholder="Password" />
+            <i class="fa-solid fa-eye" id="togglePassword"></i>
+          </div>
+
+          <div class="options">
+            <label>
+              <input type="checkbox" id="rememberMe" /> Remember Me
+            </label>
+            <a href="forgot-password.html" id="forgotPasswordLink">Forgot Password?</a>
+          </div>
+
+          <button class="action-btn" id="signinBtn">Sign In</button>
+
+          <div class="flip-link">
+            Don't have an account?
+            <a id="flipToSignup">Create One</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- BACK PANEL - SIGN UP -->
+      <div class="panel panel-back">
+        <div class="left-panel">
+          <div class="wave-badge">
+            <i class="fas fa-water"></i>
+            <span>WAVE MUSIC</span>
+          </div>
+          <h1>Join the Wave!</h1>
+          <p>
+            Create your account and start your musical journey. Stream millions of songs, create playlists, 
+            and discover new artists every day with Wave.
+          </p>
+          <div class="social-icons">
+            <i class="fab fa-facebook-f"></i>
+            <i class="fab fa-twitter"></i>
+            <i class="fab fa-instagram"></i>
+            <i class="fab fa-spotify"></i>
+          </div>
+        </div>
+
+        <div class="right-panel">
+          <h2>Create Account</h2>
+          <div class="sub">Join the Wave community</div>
+
+          <div class="input-group">
+            <input type="text" id="regUsername" placeholder="Username" autocomplete="off" />
+            <i class="fa-solid fa-user"></i>
+          </div>
+
+          <div class="input-group">
+            <input type="email" id="regEmail" placeholder="Email Address" autocomplete="off" />
+            <i class="fa-solid fa-envelope"></i>
+          </div>
+
+          <div class="input-group">
+            <input type="password" id="regPassword" placeholder="Password (min 6 characters)" />
+            <i class="fa-solid fa-eye" id="toggleRegPassword"></i>
+          </div>
+
+          <div class="terms">
+            <input type="checkbox" id="termsCheckbox">
+            <label for="termsCheckbox">I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a></label>
+          </div>
+
+          <button class="action-btn" id="signupBtn">Sign Up</button>
+
+          <div class="flip-link">
+            Already have an account?
+            <a id="flipToLogin">Sign In</a>
+          </div>
+        </div>
+      </div>
+      
+    </div>
+  </div>
+
+  <script>
+    // ============ API CONFIGURATION ============
+    const API_URL = 'http://localhost:5000/api';
+
+    // ============ VIDEO ============
+    const video = document.getElementById('background-video');
+    if (video) {
+      video.play().catch(e => console.log('Video autoplay prevented:', e));
+      video.playbackRate = 0.8;
+      video.loop = true;
+    }
+
+    // ============ 3D FLIP ANIMATION ============
+    const glassContainer = document.getElementById('glassContainer');
+    const flipToSignup = document.getElementById('flipToSignup');
+    const flipToLogin = document.getElementById('flipToLogin');
+
+    flipToSignup.addEventListener('click', (e) => {
+      e.preventDefault();
+      glassContainer.classList.add('flipped');
+    });
+
+    flipToLogin.addEventListener('click', (e) => {
+      e.preventDefault();
+      glassContainer.classList.remove('flipped');
+    });
+
+    // ============ DOM ELEMENTS ============
+    const signinBtn = document.getElementById('signinBtn');
+    const loginEmail = document.getElementById('loginEmail');
+    const loginPassword = document.getElementById('loginPassword');
+    const rememberCheckbox = document.getElementById('rememberMe');
+
+    const signupBtn = document.getElementById('signupBtn');
+    const regUsername = document.getElementById('regUsername');
+    const regEmail = document.getElementById('regEmail');
+    const regPassword = document.getElementById('regPassword');
+    const termsCheckbox = document.getElementById('termsCheckbox');
+
+    // ============ PASSWORD VISIBILITY TOGGLES ============
+    const togglePassword = document.getElementById('togglePassword');
+    const passwordField = document.getElementById('loginPassword');
+
+    togglePassword.addEventListener('click', () => {
+      const type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
+      passwordField.setAttribute('type', type);
+      togglePassword.classList.toggle('fa-eye');
+      togglePassword.classList.toggle('fa-eye-slash');
+    });
+
+    const toggleRegPassword = document.getElementById('toggleRegPassword');
+    const regPasswordField = document.getElementById('regPassword');
+
+    if (toggleRegPassword) {
+      toggleRegPassword.addEventListener('click', () => {
+        const type = regPasswordField.getAttribute('type') === 'password' ? 'text' : 'password';
+        regPasswordField.setAttribute('type', type);
+        toggleRegPassword.classList.toggle('fa-eye');
+        toggleRegPassword.classList.toggle('fa-eye-slash');
+      });
+    }
+
+    // ============ TOAST NOTIFICATION ============
+    function showToast(message, isError = false) {
+      const existing = document.querySelector('.toast-message');
+      if (existing) existing.remove();
+      
+      const toast = document.createElement('div');
+      toast.className = 'toast-message' + (isError ? ' error' : '');
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 3000);
+    }
+
+    // ============ LOAD SAVED CREDENTIALS ============
+    function loadSavedCredentials() {
+      const savedEmail = localStorage.getItem('wave_saved_email');
+      const savedPassword = localStorage.getItem('wave_saved_password');
+      if (savedEmail && savedPassword) {
+        loginEmail.value = savedEmail;
+        loginPassword.value = savedPassword;
+        rememberCheckbox.checked = true;
+      }
+    }
+
+    // ============ SIGN IN (Backend API) ============
+    signinBtn.addEventListener('click', async () => {
+      const email = loginEmail.value.trim();
+      const password = loginPassword.value;
+
+      if (!email || !password) {
+        showToast('Please enter email and password', true);
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_URL}/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        
+        const data = await response.json();
+        
+        if (data.token) {
+          localStorage.setItem('token', data.token);
+          
+          if (data.user && data.user.id) {
+            localStorage.setItem('userId', data.user.id);
+          } else if (data.user && data.user._id) {
+            localStorage.setItem('userId', data.user._id);
+          }
+          
+          if (rememberCheckbox.checked) {
+            localStorage.setItem('wave_saved_email', email);
+            localStorage.setItem('wave_saved_password', password);
+          } else {
+            localStorage.removeItem('wave_saved_email');
+            localStorage.removeItem('wave_saved_password');
+          }
+          
+          showToast(`Welcome back! 🌊`);
+          setTimeout(() => {
+            window.location.href = 'index.html';
+          }, 1000);
+        } else {
+          showToast(data.error || 'Login failed', true);
+        }
+      } catch (error) {
+        console.error('Login error:', error);
+        showToast('Server error. Please try again.', true);
+      }
+    });
+
+    // ============ SIGN UP (Backend API) ============
+    signupBtn.addEventListener('click', async () => {
+      const username = regUsername.value.trim();
+      const email = regEmail.value.trim();
+      const password = regPassword.value;
+
+      if (!username || !email || !password) {
+        showToast('All fields are required', true);
+        return;
+      }
+
+      if (password.length < 6) {
+        showToast('Password must be at least 6 characters', true);
+        return;
+      }
+
+      if (!email.includes('@') || !email.includes('.')) {
+        showToast('Enter a valid email address', true);
+        return;
+      }
+
+      if (!termsCheckbox.checked) {
+        showToast('Please agree to the Terms of Service', true);
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_URL}/auth/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, email, password, preferences: [] })
+        });
+        
+        const data = await response.json();
+        
+        if (data.token) {
+          localStorage.setItem('token', data.token);
+          
+          if (data.user && data.user.id) {
+            localStorage.setItem('userId', data.user.id);
+          } else if (data.user && data.user._id) {
+            localStorage.setItem('userId', data.user._id);
+          }
+          
+          showToast(`Welcome ${username}! 🌊`);
+          setTimeout(() => {
+            window.location.href = 'index.html';
+          }, 1000);
+        } else {
+          showToast(data.error || 'Registration failed', true);
+        }
+      } catch (error) {
+        console.error('Register error:', error);
+        showToast('Server error. Please try again.', true);
+      }
+    });
+
+    // ============ SOCIAL ICONS (placeholder) ============
+    document.querySelectorAll('.social-icons i').forEach(icon => {
+      icon.addEventListener('click', () => {
+        showToast('Social login coming soon!');
+      });
+    });
+
+    // Load saved credentials on page load
+    loadSavedCredentials();
+  </script>
+</body>
+</html>

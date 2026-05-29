@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌊 Wave</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+    <!-- APP MAIN CONTENT ONLY - NO AUTH MODALS -->
+    <div class="app" id="app" style="display:none;">
+        <div class="sidebar">
+            <div class="logo"><i class="fas fa-water"></i> Wave</div>
+            <nav>
+                <a href="#" class="nav-item active" onclick="switchTab('home')"><i class="fas fa-home"></i> Home</a>
+                <a href="#" class="nav-item" onclick="switchTab('search')"><i class="fas fa-search"></i> Search</a>
+                <a href="#" class="nav-item" onclick="switchTab('artists')"><i class="fas fa-user"></i> Artists</a>
+                <a href="#" class="nav-item" onclick="switchTab('favorites')"><i class="fas fa-heart"></i> Favorites</a>
+                <a href="#" class="nav-item" onclick="switchTab('playlists')"><i class="fas fa-list"></i> Playlists</a>
+                <a href="#" class="nav-item" onclick="switchTab('mixes')"><i class="fas fa-compact-disc"></i> Mixes</a>
+                <a href="#" class="nav-item" onclick="switchTab('ai')"><i class="fas fa-robot"></i> AI Assistant</a>
+                <a href="#" class="nav-item" onclick="switchTab('wavo')"><i class="fas fa-headphones"></i> AI DJ</a>
+                <a href="#" class="nav-item" id="uploadNav" onclick="switchTab('upload')"><i class="fas fa-cloud-upload-alt"></i> Upload</a>
+                <a href="#" class="nav-item" id="adminNav" style="display:none;" onclick="switchTab('admin')"><i class="fas fa-shield-alt"></i> Admin Panel</a>
+                <a href="#" class="nav-item" onclick="switchTab('account')"><i class="fas fa-user-circle"></i> Account</a>
+            </nav>
+            <div class="user-section"><span id="userDisplay">User</span><button onclick="logout()" class="logout-btn">Logout</button></div>
+        </div>
+        <div class="main-content">
+            <div id="homeTab" class="tab-content">
+                <h1>🌊 Wave</h1>
+
+                <!-- Weekly Wave Card -->
+                <div class="weekly-wave-card">
+                    <div class="card-header">
+                        <div class="card-cover">🌊</div>
+                        <div class="card-info">
+                            <div class="card-type">WEEKLY PLAYLIST</div>
+                            <div class="card-title">This Week's Wave</div>
+                            <div class="card-desc">Fresh picks - different artists every week. Updated weekly.</div>
+                            <div class="card-meta">
+                                <span>Wave</span>
+                                <span>•</span>
+                                <span id="weeklyWaveCount">0 songs</span>
+                                <span>•</span>
+                                <span id="weeklyWaveDuration">0 min</span>
+                            </div>
+                        </div>
+                        <button class="view-btn" onclick="openWeeklyWaveInPlaylists()">📋 View Playlist</button>
+                    </div>
+                </div>
+
+                <!-- Mood Playlists Section -->
+                <div class="section">
+                    <h2><span>🎭</span> Mood Playlists</h2>
+                    <div class="mood-row">
+                        <div class="mood-card chill" onclick="openMoodPlaylist('chill')">
+                            <div class="mood-emoji">😌</div>
+                            <div class="mood-name">Chill</div>
+                            <div class="mood-count" id="chillCount">0 songs</div>
+                        </div>
+                        <div class="mood-card energetic" onclick="openMoodPlaylist('energetic')">
+                            <div class="mood-emoji">⚡</div>
+                            <div class="mood-name">Energetic</div>
+                            <div class="mood-count" id="energeticCount">0 songs</div>
+                        </div>
+                        <div class="mood-card sad" onclick="openMoodPlaylist('sad')">
+                            <div class="mood-emoji">😢</div>
+                            <div class="mood-name">Sad</div>
+                            <div class="mood-count" id="sadCount">0 songs</div>
+                        </div>
+                        <div class="mood-card happy" onclick="openMoodPlaylist('happy')">
+                            <div class="mood-emoji">😊</div>
+                            <div class="mood-name">Happy</div>
+                            <div class="mood-count" id="happyCount">0 songs</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recently Played Section -->
+                <div class="section">
+                    <h2><span>🕐</span> Recently Played</h2>
+                    <div class="scroll-container">
+                        <div class="horizontal-grid" id="recentGrid">
+                            <div class="song-card-placeholder">No recent songs</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="searchTab" class="tab-content" style="display:none;"><h1>Search</h1><div class="search-box"><i class="fas fa-search"></i><input type="text" id="searchInput" placeholder="Search..." onkeyup="searchSongs(this.value)"></div><button onclick="deeperSearch()" class="btn-green" style="width:auto;padding:8px 16px;margin-bottom:16px;">🔍 Online Search</button><div class="songs-grid" id="searchGrid">Type to search...</div></div>
+<div id="artistsTab" class="tab-content" style="display:none;">
+    <div id="artistsListView">
+        <h1>Artists</h1>
+        <div class="artists-grid" id="artistsGrid"></div>
+    </div>
+    <div id="artistDetailView" style="display:none;">
+        <button class="back-btn" onclick="backToArtistsList()">← Back to Artists</button>
+        <div class="artist-header">
+            <div class="artist-cover" id="artistCover"></div>
+            <div class="artist-info">
+                <div class="artist-type">ARTIST</div>
+                <div class="artist-name" id="artistName">Artist Name</div>
+                <div class="artist-stats">
+                    <span id="artistSongCount">0 songs</span>
+                    <span>•</span>
+                    <span id="artistPlays">0 plays</span>
+                </div>
+                <div class="artist-bio" id="artistBio">No bio available.</div>
+                <button class="follow-btn" id="followBtn" onclick="toggleFollowArtist()">+ Follow</button>
+            </div>
+        </div>
+        <div class="action-bar">
+            <button class="btn-play" id="playAllArtistSongsBtn">▶ Play</button>
+            <button class="btn-icon" id="shuffleArtistSongsBtn">🔀</button>
+            <button class="btn-icon" id="likeArtistBtn">❤️</button>
+            <button class="btn-icon" id="moreArtistBtn">⋯</button>
+        </div>
+        <table class="songs-table">
+            <thead><tr><th style="width:40px;">#</th><th>Title</th><th>Album</th><th>Duration</th><th style="width:50px;"></th></tr></thead>
+            <tbody id="artistSongsTableBody"><tr><td colspan="5" style="text-align:center; padding:40px;">Select an artist to view songs</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+            <div id="favoritesTab" class="tab-content" style="display:none;"><h1>❤️ Favorites</h1><div class="songs-grid" id="favoritesGrid">No favorites</div></div>
+
+            <div id="playlistsTab" class="tab-content" style="display:none;">
+                <div id="playlistListView">
+                    <h1>📋 Playlists</h1>
+                    <button onclick="createPlaylist()" class="btn-green" style="width:auto;padding:10px 24px;margin-bottom:20px;">+ New Playlist</button>
+                    <div id="playlistList"></div>
+                </div>
+                <div id="playlistDetailView" style="display:none;">
+                    <button class="back-btn" onclick="backToPlaylistList()">← Back to playlists</button>
+                    <div class="playlist-detail">
+                        <div class="playlist-header">
+                            <div class="playlist-cover" id="detailCover">📋</div>
+                            <div class="playlist-info">
+                                <div class="playlist-type" id="detailType">PLAYLIST</div>
+                                <div class="playlist-title" id="detailTitle">Playlist Name</div>
+                                <div class="playlist-desc" id="detailDesc">No description</div>
+                                <div class="playlist-meta">
+                                    <span class="playlist-owner">Wave</span>
+                                    <span>•</span>
+                                    <span id="detailCount">0 songs</span>
+                                    <span>•</span>
+                                    <span id="detailDuration">0 min</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="action-bar">
+                            <button class="btn-play" id="playPlaylistBtn">▶ Play</button>
+                            <button class="btn-icon" id="shufflePlaylistBtn">🔀</button>
+                            <button class="btn-icon" id="likePlaylistBtn">❤️</button>
+                            <button class="btn-icon" id="morePlaylistBtn">⋯</button>
+                        </div>
+                        <div id="detailTableContainer"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="mixesTab" class="tab-content" style="display:none;"><h1>🎧 DJ Mixes</h1><p style="color:#b3b3b3;margin-bottom:20px;">Long DJ mixes</p><div class="songs-grid" id="mixesGrid">No mixes found</div></div>
+            
+            <div id="aiTab" class="tab-content" style="display:none;"><h1>🤖 AI Assistant</h1><div class="chat-container"><div class="chat-messages" id="chatMessages"><div class="chat-bubble ai-bubble"><p>Hey! Ask me anything about music! 🎵</p></div></div><div class="chat-input"><input type="text" id="chatInput" placeholder="Type your message..." onkeypress="if(event.key==='Enter')sendMessage()"><button onclick="sendMessage()" class="btn-green" style="width:auto;padding:10px 16px;"><i class="fas fa-paper-plane"></i></button><button onclick="toggleVoice()" id="voiceBtn" class="btn-voice"><i class="fas fa-volume-up"></i></button></div></div></div>
+            
+            <div id="wavoTab" class="tab-content" style="display:none;">
+                <h1>🎧 Wavo - AI DJ</h1>
+                <p style="color:#b3b3b3; margin-bottom:20px;">Talk to Wavo. Ask for song recommendations, mood-based playlists, or music chat.</p>
+                
+                <!-- AI DJ Control Buttons -->
+                <div style="display: flex; gap: 12px; margin-bottom: 20px;">
+                    <button onclick="playNext()" class="btn-green" style="width: auto; padding: 12px 24px; font-size: 16px;">
+                        🎤 Start AI DJ Set
+                    </button>
+                    <button onclick="stopDJMode()" class="btn-cancel" style="width: auto; padding: 12px 24px; font-size: 16px; background: #404040; color: white; border: none; border-radius: 24px; cursor: pointer;">
+                        ⏹️ Stop DJ Mode
+                    </button>
+                </div>
+                
+                <div class="wavo-container" style="max-width:800px;">
+                    <div class="wavo-chat" id="wavoChat" style="background:#181818; border-radius:12px; padding:20px; height:400px; overflow-y:auto; margin-bottom:16px;">
+                        <div class="wavo-message wavo-bot" style="margin-bottom:12px;">
+                            <strong>🎧 Wavo:</strong> Hey! I'm Wavo, your AI DJ. Ask me for music recommendations, tell me your mood, or just chat. What are you feeling like listening to?
+                        </div>
+                    </div>
+                    
+                    <div style="display:flex; gap:12px; margin-bottom:12px; flex-wrap:wrap;">
+                        <button class="wavo-chip" onclick="sendWavoMessage('Play something upbeat')" style="background:#282828; border:none; padding:8px 16px; border-radius:20px; cursor:pointer;">🎵 Upbeat</button>
+                        <button class="wavo-chip" onclick="sendWavoMessage('I need chill vibes')" style="background:#282828; border:none; padding:8px 16px; border-radius:20px; cursor:pointer;">😌 Chill</button>
+                        <button class="wavo-chip" onclick="sendWavoMessage('Sad songs for tonight')" style="background:#282828; border:none; padding:8px 16px; border-radius:20px; cursor:pointer;">😢 Sad</button>
+                        <button class="wavo-chip" onclick="sendWavoMessage('Recommend me some hip hop')" style="background:#282828; border:none; padding:8px 16px; border-radius:20px; cursor:pointer;">🎤 Hip Hop</button>
+                        <button class="wavo-chip" onclick="sendWavoMessage('What song fits my mood?')" style="background:#282828; border:none; padding:8px 16px; border-radius:20px; cursor:pointer;">🤔 Mood match</button>
+                    </div>
+                    
+                    <div style="display:flex; gap:12px;">
+                        <input type="text" id="wavoInput" placeholder="Ask Wavo for music..." style="flex:1; background:#282828; border:1px solid #404040; border-radius:24px; padding:12px 20px; color:white; outline:none;" onkeypress="if(event.key==='Enter') sendWavoMessage(document.getElementById('wavoInput').value)">
+                        <button onclick="sendWavoMessage(document.getElementById('wavoInput').value)" style="background:#1DB954; border:none; padding:12px 24px; border-radius:24px; cursor:pointer; font-weight:bold;">Send</button>
+                        <button onclick="toggleWavoVoice()" id="wavoVoiceBtn" style="background:#282828; border:none; padding:12px; border-radius:24px; cursor:pointer;">🔊</button>
+                    </div>
+                    
+                    <div style="margin-top:16px; padding:12px; background:#282828; border-radius:12px;">
+                        <div style="display:flex; gap:16px; align-items:center; flex-wrap:wrap;">
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <span style="color:#1DB954;">⚙️</span>
+                                <span style="font-size:13px;">Groq API Key:</span>
+                                <input type="password" id="groqApiKey" placeholder="Enter your Groq API key" style="background:#3a3a3a; border:1px solid #404040; border-radius:8px; padding:6px 12px; color:white; width:250px;">
+                                <button onclick="saveGroqKey()" style="background:#404040; border:none; padding:6px 16px; border-radius:8px; cursor:pointer;">Save</button>
+                            </div>
+                            <div style="font-size:12px; color:#b3b3b3;">
+                                <span id="wavoKeyStatus">🔴 No key set</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="uploadTab" class="tab-content" style="display:none;"><h1>📤 Upload Music</h1><div class="account-card"><h2><i class="fas fa-music"></i> Upload New Song</h2><p class="upload-note">Artist name = your username</p><div class="info-row"><label>Song Title *</label><input type="text" id="uploadTitle"></div><div class="info-row"><label>Album</label><input type="text" id="uploadAlbum"></div><div class="info-row"><label>Genre</label><input type="text" id="uploadGenre"></div><div class="info-row"><label>Audio File (MP3) *</label><input type="file" id="uploadAudio" accept="audio/*" class="file-input"></div><div class="info-row"><label>Cover Image</label><input type="file" id="uploadCover" accept="image/*" class="file-input"></div><div class="info-row"><label>Lyrics File</label><input type="file" id="uploadLyrics" accept=".txt,.lrc" class="file-input"></div><button onclick="uploadSong()" class="btn-green">Upload Song</button><div id="uploadStatus"></div></div><h1 style="margin-top:40px;">📁 My Uploads</h1><div class="songs-grid" id="myUploadsGrid">Loading...</div></div>
+            
+            <div id="adminTab" class="tab-content" style="display:none;">
+                <h1>🛡️ Admin Panel</h1>
+                
+                <div class="account-card">
+                    <h2>🔍 Find Artist</h2>
+                    <p class="upload-note">Type to search</p>
+                    <div class="autocomplete-wrapper">
+                        <input type="text" id="adminArtistSearch" placeholder="Type artist name..." oninput="searchArtists(this.value)" autocomplete="off" class="admin-input">
+                        <div id="artistSuggestions" class="suggestions-dropdown" style="display:none;"></div>
+                    </div>
+                    <button onclick="checkArtist()" class="btn-green">Select Artist</button>
+                    <div id="artistCheckResult"></div>
+                </div>
+                
+                <div class="account-card" id="createArtistCard" style="display:none;">
+                    <h2>➕ Create Artist</h2>
+                    <div class="info-row"><label>Artist Name *</label><input type="text" id="newArtistUsername"></div>
+                    <div class="info-row"><label>Genre</label><input type="text" id="newArtistGenre"></div>
+                    <div class="info-row"><label>Bio</label><input type="text" id="newArtistBio"></div>
+                    <div class="info-row"><label>Artist Photo</label><input type="file" id="newArtistAvatar" accept="image/*" class="file-input"></div>
+                    <button onclick="createArtist()" class="btn-green">Create Artist</button>
+                    <div id="createArtistStatus"></div>
+                </div>
+                
+                <div class="account-card" id="adminUploadCard" style="display:none;">
+                    <h2>📤 Upload for <span id="adminUploadArtistName" class="highlight-name"></span></h2>
+                    <div class="info-row"><label>Song Title *</label><input type="text" id="adminUploadTitle"></div>
+                    <div class="info-row"><label>Audio File (MP3) *</label><input type="file" id="adminUploadAudio" accept="audio/*" class="file-input"></div>
+                    <div class="info-row"><label>Cover Image</label><input type="file" id="adminUploadCover" accept="image/*" class="file-input"></div>
+                    <div class="info-row"><label>Lyrics File</label><input type="file" id="adminUploadLyrics" accept=".txt,.lrc" class="file-input"></div>
+                    <button onclick="adminUploadSong()" class="btn-green">Upload for Artist</button>
+                    <div id="adminUploadStatus"></div>
+                </div>
+                
+                <div class="account-card" id="adminMixCard" style="display:none;">
+                    <h2>🎧 Upload Mix for <span id="adminMixArtistName" class="highlight-name"></span></h2>
+                    <p class="mix-notice">⚠ Mixes support up to 2GB files</p>
+                    <div class="info-row"><label>Mix Title *</label><input type="text" id="adminMixTitle"></div>
+                    <div class="info-row"><label>Audio File (MP3) * (Up to 2GB)</label><input type="file" id="adminMixAudio" accept="audio/*" class="file-input"></div>
+                    <div class="info-row"><label>Cover Image</label><input type="file" id="adminMixCover" accept="image/*" class="file-input"></div>
+                    <div class="info-row"><label>Lyrics File</label><input type="file" id="adminMixLyrics" accept=".txt,.lrc" class="file-input"></div>
+                    <button onclick="adminUploadMix()" class="btn-green">Upload Mix</button>
+                    <div id="adminMixStatus"></div>
+                </div>
+                
+                <div class="account-card" id="bulkUploadCard">
+                    <h2><i class="fas fa-layer-group"></i> 📦 Bulk Upload</h2>
+                    <p class="upload-note">Open the separate bulk upload tool to upload multiple songs at once.</p>
+                    <button onclick="openBulkUploadWithToken()" class="btn-green">🚀 Open Bulk Upload Page</button>
+                </div>
+
+                <div class="account-card" id="bulkLyricsCard">
+                    <h2><i class="fas fa-file-alt"></i> 📝 Bulk Lyrics Upload</h2>
+                    <p class="upload-note">Upload multiple .txt or .lrc files and match them to songs</p>
+                    <button onclick="openBulkLyricsWithToken()" class="btn-green">📝 Open Bulk Lyrics Upload</button>
+                </div>
+                
+                <div id="bulkReviewPanel" style="display:none; margin-top: 24px; background:#181818; border-radius:12px; padding:20px; border:1px solid #282828;">
+                    <h3 style="color:#1DB954; margin-bottom:16px;">📋 AI Review & Upload</h3>
+                    <div id="bulkReviewList" style="max-height:400px; overflow-y:auto; margin-bottom:16px;"></div>
+                    <div style="display:flex; gap:12px;">
+                        <button onclick="startBulkUploadWithAI()" id="bulkStartUploadBtn" class="btn-green" style="width:auto; padding:10px 24px;">▶ Upload All</button>
+                        <button onclick="cancelBulkReview()" class="btn-cancel" style="width:auto; padding:10px 24px;">Cancel</button>
+                    </div>
+                    <div id="bulkUploadProgressStatus" style="margin-top:16px;"></div>
+                </div>
+                
+                <div id="bulkFinalResults" style="display:none; margin-top: 24px; background:#181818; border-radius:12px; padding:20px; border:1px solid #282828;">
+                    <h3 style="color:#1DB954;">✅ Upload Complete</h3>
+                    <div id="bulkFinalSummary"></div>
+                    <div id="bulkFailedDetails"></div>
+                    <button onclick="closeBulkResults()" class="btn-green" style="width:auto; margin-top:16px;">Done</button>
+                </div>
+            </div>
+            
+            <div id="accountTab" class="tab-content" style="display:none;"><h1>👤 Account</h1><div class="account-container"><div class="account-card"><h2><i class="fas fa-user"></i> Profile</h2><div class="account-avatar"><img id="accountAvatar" src="" onerror="this.style.display='none'" class="avatar-img"><span id="avatarLetter">U</span><label class="avatar-upload-label"><i class="fas fa-camera"></i><input type="file" id="profileAvatar" accept="image/*" style="display:none;" onchange="document.getElementById('accountAvatar').src=URL.createObjectURL(this.files[0]);document.getElementById('accountAvatar').style.display='block';document.getElementById('avatarLetter').style.display='none';"></label></div><div class="account-info"><div class="info-row"><label>Username</label><input type="text" id="profileUsername" value="User"></div><div class="info-row"><label>Email</label><input type="email" id="profileEmail" value="user@email.com"></div><div class="info-row"><label>Bio</label><input type="text" id="profileBio" placeholder="Short bio"></div><button onclick="updateProfile()" class="btn-green btn-save">Save</button></div></div><div class="account-card"><h2><i class="fas fa-lock"></i> Password</h2><div class="info-row"><label>Current</label><input type="password" id="currentPassword"></div><div class="info-row"><label>New</label><input type="password" id="newPassword"></div><div class="info-row"><label>Confirm</label><input type="password" id="confirmPassword"></div><div id="passwordStrength"></div><button onclick="changePassword()" class="btn-green btn-save">Update</button></div><div class="account-card"><h2><i class="fas fa-chart-bar"></i> Stats</h2><div class="stats-grid"><div class="stat-item"><span class="stat-number" id="statFavorites">0</span><span class="stat-label">Favorites</span></div><div class="stat-item"><span class="stat-number" id="statPlaylists">0</span><span class="stat-label">Playlists</span></div><div class="stat-item"><span class="stat-number" id="statRecent">0</span><span class="stat-label">Recent</span></div></div></div><div class="account-card"><h2><i class="fas fa-sync"></i> My Wave Mix</h2><p style="color:#b3b3b3;margin-bottom:12px;">Update your weekly personalized playlist</p><button onclick="updateWaveMix()" class="btn-green btn-save">🔄 Update Now</button></div><div class="account-card danger-zone"><h2><i class="fas fa-exclamation-triangle"></i> Danger</h2><p>Delete permanently.</p><button onclick="deleteAccount()" class="btn-danger">Delete</button></div><div class="account-card"><button onclick="logout()" class="btn-signout"><i class="fas fa-sign-out-alt"></i> Sign Out</button></div></div></div>
+        </div>
+        <div id="rightPanel" class="right-panel" style="display:none;"><button onclick="hideRightPanel()" class="panel-close-btn">&times;</button><div class="right-panel-top"><img id="rightPanelImg" src="https://via.placeholder.com/200"><div id="rightPanelTitle"></div><div id="rightPanelArtist"></div></div><div class="right-panel-lyrics" id="rightPanelLyrics"></div></div>
+        <div id="editModal" class="modal-overlay" style="display:none;"><div class="edit-modal-content"><h2>✏️ Edit Song</h2><input type="hidden" id="editSongId"><div class="info-row"><label>Title</label><input type="text" id="editTitle"></div><div class="info-row"><label>Album</label><input type="text" id="editAlbum"></div><div class="info-row"><label>Genre</label><input type="text" id="editGenre"></div><div class="info-row"><label>Cover Image</label><input type="file" id="editCover" accept="image/*" class="file-input"></div><div class="info-row"><label>Lyrics File</label><input type="file" id="editLyrics" accept=".txt,.lrc" class="file-input"></div><div class="edit-buttons"><button onclick="saveEditSong()" class="btn-green">Save</button><button onclick="document.getElementById('editModal').style.display='none'" class="btn-cancel">Cancel</button></div></div></div>
+        <div class="player">
+            <div class="player-left"><img id="playerImg" src="https://via.placeholder.com/56" class="player-img"><div><div class="player-title" id="playerTitle">No song</div><div class="player-artist" id="playerArtist">Select a song</div></div><button onclick="toggleFavorite()" id="favBtn" class="player-icon-btn"><i class="far fa-heart"></i></button><button onclick="addToPlaylist()" class="player-icon-btn"><i class="fas fa-plus-circle"></i></button><button onclick="showLyrics()" class="player-icon-btn"><i class="fas fa-file-alt"></i></button><button onclick="toggleDJMode()" id="djBtn" class="player-icon-btn" title="AI DJ (Library)" style="color:#1DB954;"><i class="fas fa-robot"></i></button></div>
+            <div class="player-center"><div class="player-controls"><button class="ctrl-btn" onclick="toggleShuffle()" id="shuffleBtn"><i class="fas fa-random"></i></button><button class="ctrl-btn" onclick="playPrev()"><i class="fas fa-step-backward"></i></button><button class="play-btn" onclick="togglePlay()" id="playBtn"><i class="fas fa-play"></i></button><button class="ctrl-btn" onclick="playNextRegular()">
+    <i class="fas fa-step-forward"></i>
+</button><button class="ctrl-btn" onclick="toggleRepeat()" id="repeatBtn"><i class="fas fa-redo"></i></button></div><div class="progress-container"><span id="currentTime">0:00</span><div class="progress-bar" onclick="seekTo(event)"><div id="progressFill"></div></div><span id="duration">0:00</span></div></div>
+            <div class="player-right"><button onclick="toggleDeepDJMode()" id="deepDjBtn" class="player-icon-btn" title="AI Deep DJ (Online)" style="color:#FF9800;margin-right:12px;"><i class="fas fa-globe"></i></button><i class="fas fa-volume-up"></i><input type="range" min="0" max="100" value="70" onchange="setVolume(this.value)"></div>
+        </div>
+    </div>
+    <audio id="audio"></audio>
+    <script src="script.js"></script>
+    <div class="menu-overlay"></div>
+</body>
+</html> 

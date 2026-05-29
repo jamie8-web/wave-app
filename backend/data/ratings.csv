@@ -1,0 +1,7 @@
+user_id,song_id,play_count,rating
+user1,song_A,2,5.0
+user1,song_B,1,1.0
+user2,song_A,1,1.0
+user2,song_C,2,5.0
+user3,song_B,1,1.0
+user3,song_D,2,5.0
