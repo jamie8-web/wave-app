@@ -2366,11 +2366,7 @@ document.getElementById('likeArtistBtn')?.addEventListener('click', () => {
     }
 });
 
-document.getElementById('moreArtistBtn')?.addEventListener('click', () => {
-    if (currentArtistData) {
-        alert(`More options for ${currentArtistData.name}`);
-    }
-});
+
 
 // ============ ADMIN FUNCTIONS ============
 async function searchArtists(query) {
