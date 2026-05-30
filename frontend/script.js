@@ -154,6 +154,9 @@ function playSong(index) {
     document.getElementById('playerArtist').textContent = song.artist || '?';
     document.getElementById('playBtn').innerHTML = '<i class="fas fa-pause"></i>';
     
+    // Show player
+    document.querySelector('.player').classList.add('visible');
+    
     const playerImg = document.getElementById('playerImg');
     if (song.coverUrl && song.coverUrl !== '') {
         playerImg.src = `${API_URL.replace('/api', '')}${song.coverUrl}`;
@@ -169,7 +172,6 @@ function playSong(index) {
     updateStatus();
     showRightPanel(song);
 }
-
 function playSongById(id) {
     fetch(`${API_URL}/songs/${id}`).then(res => res.json()).then(song => {
         currentAudio.src = `${API_URL.replace('/api', '')}${song.fileUrl}`;
@@ -178,6 +180,9 @@ function playSongById(id) {
         document.getElementById('playerTitle').textContent = song.title;
         document.getElementById('playerArtist').textContent = song.artist;
         document.getElementById('playBtn').innerHTML = '<i class="fas fa-pause"></i>';
+        
+        // Show player
+        document.querySelector('.player').classList.add('visible');
         
         const playerImg = document.getElementById('playerImg');
         if (song.coverUrl && song.coverUrl !== '') {
@@ -420,17 +425,18 @@ currentAudio.addEventListener('ended', () => {
         currentAudio.currentTime = 0;
         currentAudio.play();
     } else {
-        // If in AI DJ mode, play next track
         if (djModeActive && djQueueIndex < djQueueAI.length) {
             playNext();
         } else {
-            // Regular playback
             if (window.playlistQueue && window.playlistQueueIndex < window.playlistQueue.length - 1) {
                 window.playlistQueueIndex++;
                 playSongById(window.playlistQueue[window.playlistQueueIndex]._id);
             } else if (allSongs.length) {
                 ci = isShuffle ? Math.floor(Math.random() * allSongs.length) : (ci + 1) % allSongs.length;
                 playSong(ci);
+            } else {
+                // Hide player when no more songs
+                document.querySelector('.player').classList.remove('visible');
             }
         }
     }
@@ -855,6 +861,9 @@ function playMix(url, title, artist, cover) {
     document.getElementById('playerTitle').textContent = title;
     document.getElementById('playerArtist').textContent = artist;
     document.getElementById('playBtn').innerHTML = '<i class="fas fa-pause"></i>';
+    
+    // Show player
+    document.querySelector('.player').classList.add('visible');
     
     const playerImg = document.getElementById('playerImg');
     if (cover && cover !== '') {
@@ -1748,6 +1757,9 @@ function playUploaded(url, title, artist, cover) {
     document.getElementById('playerArtist').textContent = artist;
     document.getElementById('playBtn').innerHTML = '<i class="fas fa-pause"></i>';
     
+    // Show player
+    document.querySelector('.player').classList.add('visible');
+    
     const playerImg = document.getElementById('playerImg');
     if (cover && cover !== '') {
         playerImg.src = API_URL.replace('/api', '') + cover;
@@ -1758,7 +1770,6 @@ function playUploaded(url, title, artist, cover) {
     }
     updateStatus();
 }
-
 async function uploadSong() {
     const title = document.getElementById('uploadTitle')?.value;
     const album = document.getElementById('uploadAlbum')?.value;
@@ -1973,7 +1984,77 @@ async function openArtistDetail(artistId) {
             }
         }
         
+        // Check if user is superadmin to show menu button
+        fetch(`${API_URL}/auth/profile`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        }).then(userResponse => userResponse.json()).then(user => {
+            const artistMenuBtn = document.getElementById('artistMenuBtn');
+            if (artistMenuBtn) {
+                artistMenuBtn.style.display = (user.role === 'superadmin') ? 'inline-flex' : 'none';
+            }
+        });
+        
         renderArtistSongsTable(currentArtistData.songs, artist);
+        
+        // Attach event listeners for artist action buttons
+        const playAllBtn = document.getElementById('playAllArtistSongsBtn');
+        if (playAllBtn) {
+            playAllBtn.onclick = function() {
+                if (currentArtistData && currentArtistData.songs.length > 0) {
+                    playSongById(currentArtistData.songs[0]._id);
+                    window.playlistQueue = [...currentArtistData.songs];
+                    window.playlistQueueIndex = 0;
+                    showToastMessage(`▶ Playing all songs by ${currentArtistData.name}`);
+                }
+            };
+        }
+        
+        const shuffleBtn = document.getElementById('shuffleArtistSongsBtn');
+        if (shuffleBtn) {
+            shuffleBtn.onclick = function() {
+                if (currentArtistData && currentArtistData.songs.length > 0) {
+                    const shuffled = [...currentArtistData.songs];
+                    for (let i = shuffled.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+                    }
+                    window.playlistQueue = shuffled;
+                    window.playlistQueueIndex = 0;
+                    playSongById(shuffled[0]._id);
+                    showToastMessage(`🔀 Shuffling songs by ${currentArtistData.name}`);
+                }
+            };
+        }
+        
+        const likeArtistBtn = document.getElementById('likeArtistBtn');
+        if (likeArtistBtn) {
+            likeArtistBtn.onclick = function() {
+                if (currentArtistData && currentArtistData.songs.length > 0) {
+                    let addedCount = 0;
+                    for (let song of currentArtistData.songs) {
+                        const songKey = `${song.title} - ${song.artist}`;
+                        if (!favorites.includes(songKey)) {
+                            favorites.push(songKey);
+                            addedCount++;
+                        }
+                    }
+                    localStorage.setItem('favorites', JSON.stringify(favorites));
+                    showToastMessage(`❤️ Added ${addedCount} songs by ${currentArtistData.name} to Favorites`);
+                    updateFavBtn();
+                    const favTab = document.getElementById('favoritesTab');
+                    if (favTab && favTab.style.display !== 'none') {
+                        showFavorites();
+                    }
+                }
+            };
+        }
+        
+        const moreBtn = document.getElementById('moreArtistBtn');
+        if (moreBtn) {
+            moreBtn.onclick = function() {
+                alert(`More options for ${currentArtistData.name}`);
+            };
+        }
         
         const artistsListView = document.getElementById('artistsListView');
         const artistDetailView = document.getElementById('artistDetailView');
@@ -1988,7 +2069,6 @@ async function openArtistDetail(artistId) {
         alert('Could not load artist details');
     }
 }
-
 function renderArtistSongsTable(songs, artist) {
     const tbody = document.getElementById('artistSongsTableBody');
     if (!tbody) return;
@@ -2976,7 +3056,134 @@ Genres available: ${genres.join(', ')}
 Songs (sample of up to 30):
 ${songList}`;
 }
+// ============ ARTIST EDIT/DELETE FOR SUPERADMIN ============
 
+function openArtistMenu(event) {
+    event.stopPropagation();
+    closeMenu();
+    
+    const button = event.currentTarget;
+    const rect = button.getBoundingClientRect();
+    
+    const menu = document.createElement('div');
+    menu.className = 'popup-menu';
+    menu.style.position = 'fixed';
+    menu.style.top = (rect.bottom + 5) + 'px';
+    menu.style.right = (window.innerWidth - rect.right) + 'px';
+    menu.style.backgroundColor = '#282828';
+    menu.style.borderRadius = '8px';
+    menu.style.boxShadow = '0 4px 20px rgba(0,0,0,0.5)';
+    menu.style.minWidth = '200px';
+    menu.style.zIndex = '10000';
+    menu.style.overflow = 'hidden';
+    
+    menu.innerHTML = `
+        <div class="popup-menu-item" onclick="editArtist()">
+            <span>✏️</span> Edit Artist
+        </div>
+        <div class="popup-menu-item danger" onclick="deleteArtist()">
+            <span>🗑️</span> Delete Artist
+        </div>
+    `;
+    
+    document.body.appendChild(menu);
+    activeMenu = menu;
+    
+    setTimeout(() => {
+        document.addEventListener('click', function closeOnClick(e) {
+            if (!menu.contains(e.target) && !button.contains(e.target)) {
+                closeMenu();
+                document.removeEventListener('click', closeOnClick);
+            }
+        });
+    }, 10);
+}
+
+function editArtist() {
+    if (!currentArtistData) return;
+    
+    // Create modal for editing artist
+    const modal = document.createElement('div');
+    modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);z-index:10000;display:flex;justify-content:center;align-items:center;';
+    
+    modal.innerHTML = `
+        <div style="background:#181818;padding:30px;border-radius:16px;width:90%;max-width:500px;">
+            <h2 style="color:#1DB954;margin-bottom:20px;">✏️ Edit Artist</h2>
+            <div style="margin-bottom:15px;">
+                <label style="color:#b3b3b3;display:block;margin-bottom:5px;">Artist Name</label>
+                <input type="text" id="editArtistName" value="${escapeHtml(currentArtistData.name)}" style="width:100%;padding:12px;background:#282828;border:1px solid #404040;border-radius:8px;color:white;">
+            </div>
+            <div style="margin-bottom:15px;">
+                <label style="color:#b3b3b3;display:block;margin-bottom:5px;">Genre</label>
+                <input type="text" id="editArtistGenre" value="${escapeHtml(currentArtistData.genre || '')}" style="width:100%;padding:12px;background:#282828;border:1px solid #404040;border-radius:8px;color:white;">
+            </div>
+            <div style="margin-bottom:15px;">
+                <label style="color:#b3b3b3;display:block;margin-bottom:5px;">Bio</label>
+                <textarea id="editArtistBio" rows="3" style="width:100%;padding:12px;background:#282828;border:1px solid #404040;border-radius:8px;color:white;">${escapeHtml(currentArtistData.bio || '')}</textarea>
+            </div>
+            <div style="margin-bottom:20px;">
+                <label style="color:#b3b3b3;display:block;margin-bottom:5px;">Artist Photo</label>
+                ${currentArtistData.image ? `<img src="${API_URL.replace('/api', '')}${currentArtistData.image}" style="width:80px;height:80px;border-radius:50%;object-fit:cover;margin-bottom:10px;">` : ''}
+                <input type="file" id="editArtistImage" accept="image/*" style="width:100%;padding:12px;background:#282828;border:1px solid #404040;border-radius:8px;color:white;">
+            </div>
+            <div style="display:flex;gap:12px;">
+                <button onclick="saveArtistEdit()" class="btn-green" style="flex:1;">Save Changes</button>
+                <button onclick="this.closest('div').parentElement.remove()" class="btn-cancel" style="flex:1;">Cancel</button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    window.activeEditModal = modal;
+}
+
+function saveArtistEdit() {
+    const newName = document.getElementById('editArtistName')?.value;
+    const newGenre = document.getElementById('editArtistGenre')?.value;
+    const newBio = document.getElementById('editArtistBio')?.value;
+    const imageFile = document.getElementById('editArtistImage')?.files[0];
+    
+    const formData = new FormData();
+    if (newName && newName !== currentArtistData.name) formData.append('name', newName);
+    if (newGenre !== undefined) formData.append('genre', newGenre);
+    if (newBio !== undefined) formData.append('bio', newBio);
+    if (imageFile) formData.append('image', imageFile);
+    
+    fetch(`${API_URL}/artists/${currentArtistData._id}`, {
+        method: 'PUT',
+        headers: { 'Authorization': `Bearer ${token}` },
+        body: formData
+    }).then(response => response.json()).then(() => {
+        showToastMessage('✅ Artist updated');
+        if (window.activeEditModal) window.activeEditModal.remove();
+        openArtistDetail(currentArtistData._id);
+        loadArtists();
+    }).catch(() => showToastMessage('❌ Update failed', true));
+}
+
+function deleteArtist() {
+    if (!currentArtistData) return;
+    
+    if (confirm(`Delete artist "${currentArtistData.name}" and all their songs? This cannot be undone.`)) {
+        // Delete all songs by this artist
+        for (let song of currentArtistData.songs) {
+            fetch(`${API_URL}/songs/${song._id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            }).catch(() => {});
+        }
+        
+        // Delete the artist
+        fetch(`${API_URL}/artists/${currentArtistData._id}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+        }).then(() => {
+            showToastMessage('🗑️ Artist deleted');
+            backToArtistsList();
+            loadArtists();
+        }).catch(() => showToastMessage('❌ Delete failed', true));
+    }
+}
 // ============ INITIALIZATION ============
 document.addEventListener('click', function(e) {
     if (!e.target.closest('#adminArtistSearch') && !e.target.closest('#artistSuggestions')) {

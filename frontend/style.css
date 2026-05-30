@@ -295,12 +295,23 @@ body {
   display: none;
 }
 
+/* ============ SCROLLABLE BOTTOM NAVIGATION ============ */
 nav {
   display: flex;
   flex-direction: row;
-  justify-content: space-around;
+  overflow-x: auto;
+  overflow-y: hidden;
+  white-space: nowrap;
+  gap: 4px;
+  padding: 4px 0;
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
   width: 100%;
-  gap: 0;
+}
+
+/* Hide scrollbar on mobile for cleaner look */
+nav::-webkit-scrollbar {
+  display: none;
 }
 
 .nav-item {
@@ -315,6 +326,7 @@ nav {
   align-items: center;
   gap: 4px;
   transition: all .2s;
+  flex-shrink: 0;
 }
 
 .nav-item i {
@@ -520,6 +532,7 @@ nav {
 }
 
 /* ============ PLAYER - Spotify Style Bottom Bar ============ */
+/* Player hidden by default */
 .player {
   position: fixed;
   bottom: 60px;
@@ -529,11 +542,16 @@ nav {
   border-top: 1px solid #282828;
   border-bottom: 1px solid #282828;
   padding: 10px 16px;
-  display: flex;
+  display: none;
   align-items: center;
   justify-content: space-between;
   height: 70px;
   z-index: 99;
+}
+
+/* When player is active/visible */
+.player.visible {
+  display: flex;
 }
 
 .player-left {
@@ -755,10 +773,19 @@ nav {
     gap: 10px;
   }
 
+  /* Desktop navigation - no scroll, column layout */
   nav {
     display: flex;
     flex-direction: column;
     gap: 4px;
+    overflow-x: visible;
+    white-space: normal;
+  }
+
+  /* Show scrollbar on desktop if needed */
+  nav::-webkit-scrollbar {
+    display: block;
+    height: 4px;
   }
 
   .nav-item {
@@ -831,7 +858,6 @@ nav {
 }
 
 /* ============ REST OF ORIGINAL STYLES (preserved) ============ */
-/* Account, Admin, Upload, Artists, Playlists, etc. - all original styles below */
 .account-container { max-width: 700px; }
 .account-card {
   background: #181818;
