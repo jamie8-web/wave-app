@@ -2208,12 +2208,12 @@ async function openArtistDetail(artistId) {
         
         // REWRITTEN moreArtistBtn - opens the full menu
         const moreBtn = document.getElementById('moreArtistBtn');
-        if (moreBtn) {
-            moreBtn.onclick = function(event) {
-                event.stopPropagation();
-                openArtistMenuForMore(event);
-            };
-        }
+if (moreBtn) {
+    moreBtn.onclick = function(event) {
+        event.stopPropagation();
+        openArtistMenu(event);  // Same function as the ⋮ button
+    };
+}
         
         const artistsListView = document.getElementById('artistsListView');
         const artistDetailView = document.getElementById('artistDetailView');
