@@ -2359,7 +2359,7 @@ async function adminUploadMix() {
 function openBulkUploadWithToken() {
     const token = localStorage.getItem('token');
     if (token) {
-        window.open(`http://localhost:5000/bulk-upload.html?token=${encodeURIComponent(token)}`, '_blank');
+        window.open(`https://attractive-heart-production-a507.up.railway.app/bulk-upload.html?token=${encodeURIComponent(token)}`, '_blank');
     } else {
         alert('Please log in first');
     }
@@ -2368,7 +2368,7 @@ function openBulkUploadWithToken() {
 function openBulkLyricsWithToken() {
     const token = localStorage.getItem('token');
     if (token) {
-        window.open(`http://localhost:5000/bulk-lyrics.html?token=${encodeURIComponent(token)}`, '_blank');
+        window.open(`https://attractive-heart-production-a507.up.railway.app/bulk-lyrics.html?token=${encodeURIComponent(token)}`, '_blank');
     } else {
         alert('Please log in first');
     }
