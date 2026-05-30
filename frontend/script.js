@@ -3293,14 +3293,28 @@ function openArtistMenu(event) {
     const menu = document.createElement('div');
     menu.className = 'popup-menu';
     menu.style.position = 'fixed';
-    menu.style.top = (rect.bottom + 5) + 'px';
-    menu.style.right = (window.innerWidth - rect.right) + 'px';
     menu.style.backgroundColor = '#282828';
     menu.style.borderRadius = '8px';
     menu.style.boxShadow = '0 4px 20px rgba(0,0,0,0.5)';
     menu.style.minWidth = '200px';
     menu.style.zIndex = '10000';
     menu.style.overflow = 'hidden';
+    
+    // Check if menu would go off screen at the bottom
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const menuHeight = 300; // Approximate menu height
+    
+    if (spaceBelow < menuHeight && rect.top > menuHeight) {
+        // Show menu above the button
+        menu.style.top = (rect.top - menuHeight) + 'px';
+        menu.style.bottom = 'auto';
+    } else {
+        // Show menu below the button
+        menu.style.top = (rect.bottom + 5) + 'px';
+    }
+    menu.style.right = (window.innerWidth - rect.right) + 'px';
+    menu.style.maxHeight = '80vh';
+    menu.style.overflowY = 'auto';
     
     fetch(`${API_URL}/auth/profile`, {
         headers: { 'Authorization': `Bearer ${token}` }
