@@ -1585,7 +1585,8 @@ nav::-webkit-scrollbar {
   overflow: visible !important;
   white-space: normal !important;
 }
+
 .popup-menu {
-    max-height: 80vh;
+    max-height: 400px;
     overflow-y: auto;
 }

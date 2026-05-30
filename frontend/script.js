@@ -3298,22 +3298,25 @@ function openArtistMenu(event) {
     menu.style.boxShadow = '0 4px 20px rgba(0,0,0,0.5)';
     menu.style.minWidth = '200px';
     menu.style.zIndex = '10000';
-    menu.style.overflow = 'hidden';
     
-    // Check if menu would go off screen at the bottom
+    // Calculate if menu fits below
+    const menuHeight = 400;
     const spaceBelow = window.innerHeight - rect.bottom;
-    const menuHeight = 300; // Approximate menu height
+    const spaceAbove = rect.top;
     
-    if (spaceBelow < menuHeight && rect.top > menuHeight) {
-        // Show menu above the button
-        menu.style.top = (rect.top - menuHeight) + 'px';
-        menu.style.bottom = 'auto';
+    if (spaceBelow < menuHeight && spaceAbove > menuHeight) {
+        // Show above
+        menu.style.bottom = (window.innerHeight - rect.top + 5) + 'px';
+        menu.style.top = 'auto';
     } else {
-        // Show menu below the button
+        // Show below
         menu.style.top = (rect.bottom + 5) + 'px';
+        menu.style.bottom = 'auto';
     }
+    
     menu.style.right = (window.innerWidth - rect.right) + 'px';
-    menu.style.maxHeight = '80vh';
+    menu.style.left = 'auto';
+    menu.style.maxHeight = '400px';
     menu.style.overflowY = 'auto';
     
     fetch(`${API_URL}/auth/profile`, {
@@ -3373,7 +3376,6 @@ function openArtistMenu(event) {
         activeMenu = menu;
     });
 }
-
 function editArtist() {
     if (!currentArtistData) return;
     
