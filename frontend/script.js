@@ -173,43 +173,81 @@ function playSong(index) {
     showRightPanel(song);
 }
 function playSongById(id) {
-    fetch(`${API_URL}/songs/${id}`).then(res => res.json()).then(song => {
-        currentAudio.src = `${API_URL.replace('/api', '')}${song.fileUrl}`;
-        currentAudio.play();
-        isPlaying = true;
-        document.getElementById('playerTitle').textContent = song.title;
-        document.getElementById('playerArtist').textContent = song.artist;
-        document.getElementById('playBtn').innerHTML = '<i class="fas fa-pause"></i>';
-        
-        // Show player
-        document.querySelector('.player').classList.add('visible');
-        
-        const playerImg = document.getElementById('playerImg');
-        if (song.coverUrl && song.coverUrl !== '') {
-            playerImg.src = `${API_URL.replace('/api', '')}${song.coverUrl}`;
-            playerImg.style.display = 'block';
-        } else {
-            playerImg.src = `https://placehold.co/56x56/1DB954/121212?text=${encodeURIComponent(song.title.charAt(0) || '?')}`;
-            playerImg.style.display = 'block';
-        }
-        
-        window.currentLyrics = song.lyrics || '';
-        showRightPanel(song);
-        addRecent(song);
-        updateFavBtn();
-        
-        const songIndex = allSongs.findIndex(s => s._id === song._id);
-        if (songIndex !== -1) {
-            ci = songIndex;
-        } else {
-            allSongs.push(song);
-            ci = allSongs.length - 1;
-        }
-        
-        document.querySelectorAll('.song-row').forEach(row => row.classList.remove('playing'));
-        document.querySelector(`.song-row[data-song-id="${song._id}"]`)?.classList.add('playing');
-        
-    }).catch(err => console.error('Error playing song:', err));
+    if (!id) {
+        console.error('No song ID provided');
+        showToastMessage('Cannot play song: Invalid ID');
+        return;
+    }
+    
+    fetch(`${API_URL}/songs/${id}`)
+        .then(res => {
+            if (!res.ok) {
+                throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+            }
+            return res.json();
+        })
+        .then(song => {
+            if (!song || !song.fileUrl) {
+                console.error('Song or fileUrl missing:', song);
+                showToastMessage('Cannot play: Song file missing');
+                return;
+            }
+            
+            // Construct the full audio URL
+            const baseUrl = API_URL.replace('/api', '');
+            const audioUrl = baseUrl + song.fileUrl;
+            
+            console.log('Playing audio URL:', audioUrl);
+            
+            currentAudio.src = audioUrl;
+            currentAudio.play().catch(err => {
+                console.error('Playback failed:', err);
+                showToastMessage('Cannot play this song format');
+            });
+            
+            isPlaying = true;
+            document.getElementById('playerTitle').textContent = song.title || '?';
+            document.getElementById('playerArtist').textContent = song.artist || '?';
+            document.getElementById('playBtn').innerHTML = '<i class="fas fa-pause"></i>';
+            
+            // Show player
+            document.querySelector('.player').classList.add('visible');
+            
+            const playerImg = document.getElementById('playerImg');
+            if (song.coverUrl && song.coverUrl !== '') {
+                playerImg.src = baseUrl + song.coverUrl;
+                playerImg.style.display = 'block';
+            } else {
+                const titleChar = song.title ? song.title.charAt(0) : '?';
+                playerImg.src = `https://placehold.co/56x56/1DB954/121212?text=${encodeURIComponent(titleChar)}`;
+                playerImg.style.display = 'block';
+            }
+            
+            window.currentLyrics = song.lyrics || '';
+            showRightPanel(song);
+            addRecent(song);
+            updateFavBtn();
+            
+            // Find or add to allSongs
+            const songIndex = allSongs.findIndex(s => s._id === song._id);
+            if (songIndex !== -1) {
+                ci = songIndex;
+            } else {
+                allSongs.push(song);
+                ci = allSongs.length - 1;
+            }
+            
+            // Update playing row highlight
+            document.querySelectorAll('.song-row').forEach(row => row.classList.remove('playing'));
+            const playingRow = document.querySelector(`.song-row[data-song-id="${song._id}"]`);
+            if (playingRow) playingRow.classList.add('playing');
+            
+            updateStatus();
+        })
+        .catch(err => {
+            console.error('Error playing song:', err);
+            showToastMessage('Failed to load song');
+        });
 }
 
 function togglePlay() {
