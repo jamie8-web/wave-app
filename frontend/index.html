@@ -98,19 +98,22 @@
     <div id="artistDetailView" style="display:none;">
         <button class="back-btn" onclick="backToArtistsList()">← Back to Artists</button>
         <div class="artist-header">
-            <div class="artist-cover" id="artistCover"></div>
-            <div class="artist-info">
-                <div class="artist-type">ARTIST</div>
-                <div class="artist-name" id="artistName">Artist Name</div>
-                <div class="artist-stats">
-                    <span id="artistSongCount">0 songs</span>
-                    <span>•</span>
-                    <span id="artistPlays">0 plays</span>
-                </div>
-                <div class="artist-bio" id="artistBio">No bio available.</div>
-                <button class="follow-btn" id="followBtn" onclick="toggleFollowArtist()">+ Follow</button>
-            </div>
+    <div class="artist-cover" id="artistCover"></div>
+    <div class="artist-info">
+        <div class="artist-type">ARTIST</div>
+        <div class="artist-name" id="artistName">Artist Name</div>
+        <div class="artist-stats">
+            <span id="artistSongCount">0 songs</span>
+            <span>•</span>
+            <span id="artistPlays">0 plays</span>
         </div>
+        <div class="artist-bio" id="artistBio">No bio available.</div>
+        <div style="display: flex; gap: 12px; align-items: center;">
+            <button class="follow-btn" id="followBtn" onclick="toggleFollowArtist()">+ Follow</button>
+            <button class="menu-btn" id="artistMenuBtn" onclick="openArtistMenu(event)" style="background: none; border: none; color: #b3b3b3; font-size: 20px; cursor: pointer; display: none;">⋮</button>
+        </div>
+    </div>
+</div>
         <div class="action-bar">
             <button class="btn-play" id="playAllArtistSongsBtn">▶ Play</button>
             <button class="btn-icon" id="shuffleArtistSongsBtn">🔀</button>

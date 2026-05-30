@@ -1933,7 +1933,160 @@ async function loadArtists() {
         grid.innerHTML = '<div style="padding:40px; text-align:center;">Error loading artists</div>';
     }
 }
+function openArtistMenuForMore(event) {
+    event.stopPropagation();
+    closeMenu();
+    
+    const button = event.currentTarget;
+    const rect = button.getBoundingClientRect();
+    
+    const menu = document.createElement('div');
+    menu.className = 'popup-menu';
+    menu.style.position = 'fixed';
+    menu.style.top = (rect.bottom + 5) + 'px';
+    menu.style.right = (window.innerWidth - rect.right) + 'px';
+    menu.style.backgroundColor = '#282828';
+    menu.style.borderRadius = '8px';
+    menu.style.boxShadow = '0 4px 20px rgba(0,0,0,0.5)';
+    menu.style.minWidth = '200px';
+    menu.style.zIndex = '10000';
+    menu.style.overflow = 'hidden';
+    
+    fetch(`${API_URL}/auth/profile`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+    }).then(userResponse => userResponse.json()).then(user => {
+        const isAdmin = (user.role === 'superadmin' || user.role === 'admin');
+        
+        let menuHTML = `
+            <div class="popup-menu-item" onclick="shareArtist()">
+                <span>📤</span> Share Artist
+            </div>
+            <div class="popup-menu-item" onclick="viewArtistStats()">
+                <span>📊</span> View Stats
+            </div>
+            <div class="popup-menu-item" onclick="addAllArtistSongsToPlaylist()">
+                <span>📋</span> Add All Songs to Playlist
+            </div>
+        `;
+        
+        if (isAdmin) {
+            menuHTML += `
+                <div class="popup-menu-item" onclick="editArtist()">
+                    <span>✏️</span> Edit Artist
+                </div>
+                <div class="popup-menu-item danger" onclick="deleteArtist()">
+                    <span>🗑️</span> Delete Artist
+                </div>
+            `;
+        }
+        
+        menu.innerHTML = menuHTML;
+        document.body.appendChild(menu);
+        activeMenu = menu;
+        
+        setTimeout(() => {
+            document.addEventListener('click', function closeOnClick(e) {
+                if (!menu.contains(e.target) && !button.contains(e.target)) {
+                    closeMenu();
+                    document.removeEventListener('click', closeOnClick);
+                }
+            });
+        }, 10);
+    }).catch(() => {
+        let menuHTML = `
+            <div class="popup-menu-item" onclick="shareArtist()">
+                <span>📤</span> Share Artist
+            </div>
+            <div class="popup-menu-item" onclick="viewArtistStats()">
+                <span>📊</span> View Stats
+            </div>
+            <div class="popup-menu-item" onclick="addAllArtistSongsToPlaylist()">
+                <span>📋</span> Add All Songs to Playlist
+            </div>
+        `;
+        menu.innerHTML = menuHTML;
+        document.body.appendChild(menu);
+        activeMenu = menu;
+    });
+}
 
+function shareArtist() {
+    if (!currentArtistData) return;
+    const shareText = `🎤 Check out ${currentArtistData.name} on Wave!`;
+    navigator.clipboard.writeText(shareText);
+    showToastMessage(`🔗 Artist link copied!`);
+}
+
+function viewArtistStats() {
+    if (!currentArtistData) return;
+    let totalPlays = 0;
+    for (let song of currentArtistData.songs) {
+        totalPlays += song.plays || 0;
+    }
+    const songCount = currentArtistData.songs.length;
+    const followerCount = followedArtists.filter(id => id === currentArtistData._id).length;
+    
+    const modal = document.createElement('div');
+    modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);z-index:10000;display:flex;justify-content:center;align-items:center;';
+    modal.innerHTML = `
+        <div style="background:#181818;padding:30px;border-radius:16px;width:90%;max-width:400px;text-align:center;">
+            <h2 style="color:#1DB954;">📊 ${escapeHtml(currentArtistData.name)}</h2>
+            <div style="margin:20px 0;">
+                <div style="margin:15px 0;"><span style="font-size:32px;font-weight:bold;color:#1DB954;">${songCount}</span><br><span style="color:#b3b3b3;">Songs</span></div>
+                <div style="margin:15px 0;"><span style="font-size:32px;font-weight:bold;color:#1DB954;">${totalPlays.toLocaleString()}</span><br><span style="color:#b3b3b3;">Total Plays</span></div>
+                <div style="margin:15px 0;"><span style="font-size:32px;font-weight:bold;color:#1DB954;">${followerCount}</span><br><span style="color:#b3b3b3;">You follow</span></div>
+            </div>
+            <button onclick="this.closest('div').parentElement.remove()" class="btn-green" style="padding:10px 24px;">Close</button>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
+
+function addAllArtistSongsToPlaylist() {
+    if (!currentArtistData || !currentArtistData.songs.length) {
+        showToastMessage('No songs to add');
+        return;
+    }
+    
+    if (playlists.length === 0) {
+        const newName = prompt('No playlists. Create one:');
+        if (newName) {
+            const songIds = currentArtistData.songs.map(s => s._id);
+            playlists.push({ name: newName, songs: songIds, description: `All songs by ${currentArtistData.name}` });
+            localStorage.setItem('playlists', JSON.stringify(playlists));
+            showToastMessage(`✅ Created "${newName}" with ${songIds.length} songs by ${currentArtistData.name}`);
+        }
+        return;
+    }
+    
+    let playlistOptions = playlists.map((p, i) => `${i + 1}: ${p.name} (${p.songs.length} songs)`).join('\n');
+    const choice = prompt(`Add ALL ${currentArtistData.songs.length} songs by "${currentArtistData.name}" to playlist:\n\n${playlistOptions}\n\nEnter number (1-${playlists.length}) or "new" to create:`);
+    
+    if (choice === 'new') {
+        const newName = prompt('New playlist name:');
+        if (newName) {
+            const songIds = currentArtistData.songs.map(s => s._id);
+            playlists.push({ name: newName, songs: songIds, description: `All songs by ${currentArtistData.name}` });
+            localStorage.setItem('playlists', JSON.stringify(playlists));
+            showToastMessage(`✅ Created "${newName}" with ${songIds.length} songs`);
+        }
+    } else if (choice !== null) {
+        const index = parseInt(choice) - 1;
+        if (index >= 0 && index < playlists.length) {
+            let addedCount = 0;
+            for (let song of currentArtistData.songs) {
+                if (!playlists[index].songs.includes(song._id)) {
+                    playlists[index].songs.push(song._id);
+                    addedCount++;
+                }
+            }
+            localStorage.setItem('playlists', JSON.stringify(playlists));
+            showToastMessage(`✅ Added ${addedCount} songs by ${currentArtistData.name} to ${playlists[index].name}`);
+        } else {
+            showToastMessage('Invalid selection');
+        }
+    }
+}
 async function openArtistDetail(artistId) {
     try {
         const response = await fetch(`${API_URL}/artists/${artistId}`);
@@ -1982,15 +2135,19 @@ async function openArtistDetail(artistId) {
             } else {
                 followBtn.classList.remove('following');
             }
+            // Remove any existing onclick and set new one
+            followBtn.onclick = function() {
+                toggleFollowArtist();
+            };
         }
         
-        // Check if user is superadmin to show menu button
+        // Check if user is admin or superadmin to show menu button
         fetch(`${API_URL}/auth/profile`, {
             headers: { 'Authorization': `Bearer ${token}` }
         }).then(userResponse => userResponse.json()).then(user => {
             const artistMenuBtn = document.getElementById('artistMenuBtn');
             if (artistMenuBtn) {
-                artistMenuBtn.style.display = (user.role === 'superadmin') ? 'inline-flex' : 'none';
+                artistMenuBtn.style.display = (user.role === 'superadmin' || user.role === 'admin') ? 'inline-flex' : 'none';
             }
         });
         
@@ -2049,10 +2206,12 @@ async function openArtistDetail(artistId) {
             };
         }
         
+        // REWRITTEN moreArtistBtn - opens the full menu
         const moreBtn = document.getElementById('moreArtistBtn');
         if (moreBtn) {
-            moreBtn.onclick = function() {
-                alert(`More options for ${currentArtistData.name}`);
+            moreBtn.onclick = function(event) {
+                event.stopPropagation();
+                openArtistMenuForMore(event);
             };
         }
         
@@ -2116,7 +2275,6 @@ function backToArtistsList() {
     if (artistDetailView) artistDetailView.style.display = 'none';
     currentArtistData = null;
 }
-
 function toggleFollowArtist() {
     if (!currentArtistData) return;
     
@@ -2144,7 +2302,40 @@ function toggleFollowArtist() {
         }
     }
 }
+function shareArtist() {
+    if (!currentArtistData) return;
+    const shareText = `🎤 Check out ${currentArtistData.name} on Wave!`;
+    navigator.clipboard.writeText(shareText);
+    showToastMessage(`🔗 Artist link copied!`);
+}
 
+function viewArtistStats() {
+    if (!currentArtistData) return;
+    let totalPlays = 0;
+    for (let song of currentArtistData.songs) {
+        totalPlays += song.plays || 0;
+    }
+    const songCount = currentArtistData.songs.length;
+    const followerCount = followedArtists.filter(id => id === currentArtistData._id).length;
+    
+    showToastMessage(`📊 ${currentArtistData.name}: ${songCount} songs, ${totalPlays} total plays`);
+    
+    // Optional: Show a modal with more details
+    const modal = document.createElement('div');
+    modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);z-index:10000;display:flex;justify-content:center;align-items:center;';
+    modal.innerHTML = `
+        <div style="background:#181818;padding:30px;border-radius:16px;width:90%;max-width:400px;text-align:center;">
+            <h2 style="color:#1DB954;">📊 ${escapeHtml(currentArtistData.name)}</h2>
+            <div style="margin:20px 0;">
+                <div style="margin:15px 0;"><span style="font-size:32px;font-weight:bold;color:#1DB954;">${songCount}</span><br><span style="color:#b3b3b3;">Songs</span></div>
+                <div style="margin:15px 0;"><span style="font-size:32px;font-weight:bold;color:#1DB954;">${totalPlays.toLocaleString()}</span><br><span style="color:#b3b3b3;">Total Plays</span></div>
+                <div style="margin:15px 0;"><span style="font-size:32px;font-weight:bold;color:#1DB954;">${followerCount}</span><br><span style="color:#b3b3b3;">You follow</span></div>
+            </div>
+            <button onclick="this.closest('div').parentElement.remove()" class="btn-green" style="padding:10px 24px;">Close</button>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
 // Play all artist songs
 document.getElementById('playAllArtistSongsBtn')?.addEventListener('click', () => {
     if (currentArtistData && currentArtistData.songs.length) {
@@ -3077,26 +3268,62 @@ function openArtistMenu(event) {
     menu.style.zIndex = '10000';
     menu.style.overflow = 'hidden';
     
-    menu.innerHTML = `
-        <div class="popup-menu-item" onclick="editArtist()">
-            <span>✏️</span> Edit Artist
-        </div>
-        <div class="popup-menu-item danger" onclick="deleteArtist()">
-            <span>🗑️</span> Delete Artist
-        </div>
-    `;
-    
-    document.body.appendChild(menu);
-    activeMenu = menu;
-    
-    setTimeout(() => {
-        document.addEventListener('click', function closeOnClick(e) {
-            if (!menu.contains(e.target) && !button.contains(e.target)) {
-                closeMenu();
-                document.removeEventListener('click', closeOnClick);
-            }
-        });
-    }, 10);
+    fetch(`${API_URL}/auth/profile`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+    }).then(userResponse => userResponse.json()).then(user => {
+        const isAdmin = (user.role === 'superadmin' || user.role === 'admin');
+        
+        let menuHTML = `
+            <div class="popup-menu-item" onclick="shareArtist()">
+                <span>📤</span> Share Artist
+            </div>
+            <div class="popup-menu-item" onclick="viewArtistStats()">
+                <span>📊</span> View Stats
+            </div>
+            <div class="popup-menu-item" onclick="addAllArtistSongsToPlaylist()">
+                <span>📋</span> Add All Songs to Playlist
+            </div>
+        `;
+        
+        if (isAdmin) {
+            menuHTML += `
+                <div class="popup-menu-item" onclick="editArtist()">
+                    <span>✏️</span> Edit Artist
+                </div>
+                <div class="popup-menu-item danger" onclick="deleteArtist()">
+                    <span>🗑️</span> Delete Artist
+                </div>
+            `;
+        }
+        
+        menu.innerHTML = menuHTML;
+        document.body.appendChild(menu);
+        activeMenu = menu;
+        
+        setTimeout(() => {
+            document.addEventListener('click', function closeOnClick(e) {
+                if (!menu.contains(e.target) && !button.contains(e.target)) {
+                    closeMenu();
+                    document.removeEventListener('click', closeOnClick);
+                }
+            });
+        }, 10);
+    }).catch(() => {
+        let menuHTML = `
+            <div class="popup-menu-item" onclick="shareArtist()">
+                <span>📤</span> Share Artist
+            </div>
+            <div class="popup-menu-item" onclick="viewArtistStats()">
+                <span>📊</span> View Stats
+            </div>
+            <div class="popup-menu-item" onclick="addAllArtistSongsToPlaylist()">
+                <span>📋</span> Add All Songs to Playlist
+            </div>
+        `;
+        menu.innerHTML = menuHTML;
+        document.body.appendChild(menu);
+        activeMenu = menu;
+    });
 }
 
 function editArtist() {
