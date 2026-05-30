@@ -1843,3 +1843,226 @@ nav{display:flex;flex-direction:column;gap:4px;}
     overflow: visible !important;
     white-space: normal !important;
 }
+
+/* ============ MOBILE RESPONSIVE FIXES ============ */
+@media (max-width: 768px) {
+    /* App Layout */
+    .app {
+        flex-direction: column;
+    }
+    
+    /* Sidebar */
+    .sidebar {
+        width: 100%;
+        min-width: auto;
+        height: auto;
+        flex-direction: row;
+        overflow-x: auto;
+        padding: 10px;
+        border-right: none;
+        border-bottom: 1px solid #1a1a1a;
+    }
+    
+    .sidebar nav {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 4px;
+    }
+    
+    .sidebar .logo {
+        display: none;
+    }
+    
+    .user-section {
+        display: none;
+    }
+    
+    /* Main Content */
+    .main-content {
+        padding: 15px;
+        padding-bottom: 100px;
+    }
+    
+    .main-content h1 {
+        font-size: 22px;
+    }
+    
+    /* Tables - horizontal scroll */
+    .songs-table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+    
+    .songs-table th,
+    .songs-table td {
+        padding: 10px 6px;
+        font-size: 12px;
+    }
+    
+    /* Player */
+    .player {
+        flex-direction: column;
+        height: auto;
+        padding: 10px;
+        gap: 8px;
+    }
+    
+    .player-left, 
+    .player-center, 
+    .player-right {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .player-controls {
+        gap: 15px;
+    }
+    
+    .progress-container {
+        width: 100%;
+    }
+    
+    /* Mood Row */
+    .mood-row {
+        flex-direction: column;
+    }
+    
+    .mood-card {
+        min-width: auto;
+    }
+    
+    /* Playlist Header */
+    .playlist-header {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+    
+    .playlist-title {
+        font-size: 28px;
+    }
+    
+    .playlist-cover {
+        width: 120px;
+        height: 120px;
+        font-size: 40px;
+    }
+    
+    /* Artist Header */
+    .artist-header {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+    
+    .artist-name {
+        font-size: 28px;
+    }
+    
+    .artist-cover {
+        width: 120px;
+        height: 120px;
+    }
+    
+    /* Action Bars */
+    .action-bar {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    
+    /* Right Panel */
+    .right-panel {
+        width: 100%;
+        z-index: 60;
+    }
+    
+    .main-content.has-panel {
+        padding-right: 0;
+    }
+    
+    /* Search Box */
+    .search-box {
+        max-width: 100%;
+    }
+    
+    /* Chat */
+    .chat-container {
+        max-width: 100%;
+        height: calc(100vh - 250px);
+    }
+    
+    .chat-bubble {
+        max-width: 90%;
+    }
+    
+    /* Grids */
+    .songs-grid {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 12px;
+    }
+    
+    .artists-grid {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 12px;
+    }
+    
+    .artist-card-img {
+        width: 80px;
+        height: 80px;
+    }
+    
+    /* Weekly Wave Card */
+    .weekly-wave-card .card-header {
+        flex-direction: column;
+        text-align: center;
+        padding: 16px;
+    }
+    
+    .card-cover {
+        margin: 0 auto;
+    }
+    
+    .view-btn {
+        align-self: center;
+        margin-top: 10px;
+    }
+    
+    /* Account Container */
+    .account-container {
+        max-width: 100%;
+    }
+    
+    .stats-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+    }
+    
+    .stat-item {
+        padding: 12px;
+    }
+    
+    .stat-number {
+        font-size: 24px;
+    }
+    
+    /* Modals */
+    .modal-content {
+        width: 90%;
+        padding: 20px;
+    }
+    
+    .edit-modal-content {
+        width: 90%;
+        padding: 20px;
+    }
+    
+    /* Wavo AI DJ */
+    .wavo-container {
+        max-width: 100%;
+    }
+    
+    .wavo-chat {
+        height: 300px;
+    }
+}
