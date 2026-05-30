@@ -4,6 +4,9 @@ const cors = require('cors');
 const connectDB = require('./config/db');
 const path = require('path');
 
+console.log('Starting server...');
+console.log('PORT:', process.env.PORT || 5000);
+
 const authRoutes = require('./routes/auth');
 const songRoutes = require('./routes/songs');
 const artistRoutes = require('./routes/artists');
@@ -11,11 +14,13 @@ const aiRoutes = require('./routes/ai');
 const playlistRoutes = require('./routes/playlists');
 const djRoutes = require('./routes/dj');
 
+console.log('Routes loaded');
+
 const app = express();
 
+console.log('Connecting to MongoDB...');
 connectDB();
 
-// Updated CORS configuration - allow all origins for now
 app.use(cors({
     origin: '*',
     credentials: true,
@@ -23,15 +28,14 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// Handle preflight requests
 app.options('*', cors());
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
-// Serve static files from public folder (for bulk-upload.html)
 app.use(express.static(path.join(__dirname, 'public')));
+
+console.log('Setting up routes...');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/songs', songRoutes);
