@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:5000/api';
+const API_URL = 'https://attractive-heart-production-a507.up.railway.app/api';
 let token = localStorage.getItem('token');
 
 // ============ AUTH CHECK - REDIRECT TO LOGIN IF NO TOKEN ============
