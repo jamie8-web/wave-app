@@ -2,11 +2,14 @@ const mongoose = require('mongoose');
 
 const connectDB = async () => {
   try {
-    await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/wave');
+    const mongoURI = process.env.MONGODB_URI;
+    console.log('Connecting to MongoDB...');
+    await mongoose.connect(mongoURI);
     console.log('✅ MongoDB Connected: wave');
+    return true;
   } catch (error) {
     console.error('❌ MongoDB Error:', error.message);
-    process.exit(1);
+    throw error;
   }
 };
 
